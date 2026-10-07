@@ -17,3 +17,12 @@ img varchar(255),
 tabla varchar(255),
 PRIMARY KEY (id_casilla)
 );
+
+CREATE TABLE IF NOT EXISTS Usuarios(
+id_usuario int auto_increment unique not null,
+nombre_usuario varchar(255),
+mail varchar(255),
+contrasena varchar(255),
+es_admin bool,
+PRIMARY KEY (id_usuario)
+);
