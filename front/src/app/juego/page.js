@@ -3,17 +3,12 @@
 import { use, useEffect, useState } from "react";
 import Boton from "@/components/Boton";
 import { useSearchParams } from "next/navigation";
+import Tablero from "@/components/tablero";
 export default function JuegoPage() {
 
 const searchParams = useSearchParams();
 const categoria = searchParams.get("categoria")
 
-const [tablaVista,setTablaVista] = useState([
-    [true,true,true,true,true],
-    [true,true,true,true,true],
-    [true,true,true,true,true],
-    [true,true,true,true,true],
-])
 
 const [tablaCasillas,setTablaCasillas] = useState([])
 
@@ -31,6 +26,12 @@ fetch(`http://localhost:4000/personajes?categoria=${categoria}`)
 
 }, []); // Array vacío
 
+return(
 
+    <>
+    <Tablero visibles={tablaVista} casillas={tablaCasillas}></Tablero>
+    </>
+
+)
 
 }
