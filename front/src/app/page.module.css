@@ -16,7 +16,7 @@
 /* Div específico con el fondo - ocupa el espacio entre header y footer */
 .backgroundContainer {
   flex: 1;
-  background-image: url('/Ffondo2.png');
+  background-image: url('/fondo2.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
