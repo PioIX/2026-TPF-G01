@@ -83,7 +83,7 @@ app.post('/login', async function (req, res) {
 
 app.get("/personajes",async function (req,res) {
     try {
-        const personajes=await realizarQuery(`Select nombre_casilla,img FROM Personajes WHERE tabla=${req.query.categoria} ORDER BY RAND() limit 20`)
+        const personajes=await realizarQuery(`Select nombre_casilla,img FROM Personajes WHERE tabla="${req.query.categoria}" ORDER BY RAND() limit 20`)
         res.send({personajes:personajes})
     } catch (error) {
         res.status(500).send({ error: error.message });
