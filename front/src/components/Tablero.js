@@ -1,24 +1,22 @@
-import Casilla from "./casilla";
+"use client"
+
+import Casilla from "./Casilla";
 import { useEffect, useState } from "react";
 
 export default function Tablero({ casillas }) {
 
-  const [tablero,setTablero]=useState([])
-  console.log(casillas)
+
   function dividirEnGrupos(lista) {
   const resultado = [];
   for (let i = 0; i < lista.length; i += 5) {
     resultado.push(lista.slice(i, i + 5));
   }
-  console.log(resultado)
   return resultado;
 }
 
-  useEffect(() => {
 
-  setTablero(dividirEnGrupos(casillas))
+  const tablero= dividirEnGrupos(casillas)
 
-  }, []);
 
 
   const columnas = tablero[0]?.length ?? 0;

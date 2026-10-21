@@ -1,14 +1,12 @@
 "use client"
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Boton from "@/components/Boton";
-import { useSearchParams } from "next/navigation";
 import Tablero from "@/components/Tablero";
 
 export default function JuegoPage() {
 
 
-const [tablaCasillas,setTablaCasillas] = useState([])
 const [casillas,setCasillas] = useState([])
 
 useEffect(() => {
@@ -22,12 +20,11 @@ fetch(`http://localhost:4000/personajes?categoria=actores`)
 
 
 }, []); // Array vacío
-
+console.log(casillas[0])
 return(
 
     <>
     <Tablero casillas={casillas}></Tablero>
-     
     </>
 
 )
