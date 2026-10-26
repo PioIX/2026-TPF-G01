@@ -1,150 +1,142 @@
-.page {
-  --background: #fafafa;
-  --foreground: #fff;
-
-  --text-primary: #000;
-  --text-secondary: #666;
-
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-  --button-secondary-border: #ebebeb;
-
+/* Contenedor general de la página */
+.pageWrapper {
+  min-height: 100vh;
   display: flex;
-  flex: 1;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-geist-sans);
-  background-color: var(--background);
+  position: relative;
 }
 
-.main {
-  display: flex;
+/* Header transparente para ver el fondo detrás */
+.headerWrapper {
+  position: relative;
+  z-index: 10;
+  background-color: transparent; /* Transparente para ver el fondo */
+}
+
+/* Div específico con el fondo - ocupa el espacio entre header y footer */
+.backgroundContainer {
   flex: 1;
-  width: 100%;
-  max-width: 800px;
+  background-image: url('/fondo2.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 2rem;
+  padding-bottom: 4rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* Footer transparente para ver el fondo detrás */
+.footerWrapper {
+  position: relative;
+  z-index: 10;
+  background-color: transparent; /* Transparente para ver el fondo */
+}
+
+/* Contenedor de botones */
+.buttonsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  width: 100%;
+  max-width: 500px;
+  z-index: 10;
+}
+
+/* Estilo base de todos los botones */
+.button {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  background-color: var(--foreground);
-  padding: 120px 60px;
-}
-
-.intro {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-  gap: 24px;
-}
-
-.intro h1 {
-  max-width: 320px;
-  font-size: 40px;
-  font-weight: 600;
-  line-height: 48px;
-  letter-spacing: -2.4px;
-  text-wrap: balance;
-  color: var(--text-primary);
-}
-
-.intro p {
-  max-width: 440px;
-  font-size: 18px;
-  line-height: 32px;
-  text-wrap: balance;
-  color: var(--text-secondary);
-}
-
-.intro a {
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.ctas {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  max-width: 440px;
-  gap: 16px;
-  font-size: 14px;
-}
-
-.ctas a {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 128px;
-  border: 1px solid transparent;
-  transition: 0.2s;
+  padding: 1.2rem 2rem;
+  border-radius: 50px;
+  border: 3px solid rgba(255, 255, 255, 0.4);
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
   cursor: pointer;
-  width: fit-content;
-  font-weight: 500;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-a.primary {
-  background: var(--text-primary);
-  color: var(--background);
-  gap: 8px;
+.button:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
 }
 
-a.secondary {
-  border-color: var(--button-secondary-border);
+.button:active {
+  transform: translateY(-1px) scale(1);
 }
 
-/* Enable hover only on non-touch devices */
-@media (hover: hover) and (pointer: fine) {
-  a.primary:hover {
-    background: var(--button-primary-hover);
-    border-color: transparent;
-  }
+/* Botón azul - Iniciar sesión */
+.buttonLogin {
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+}
 
-  a.secondary:hover {
-    background: var(--button-secondary-hover);
-    border-color: transparent;
+.buttonLogin:hover {
+  background: linear-gradient(135deg, #5ba0f2 0%, #4589cd 100%);
+}
+
+/* Botón amarillo - Categorías */
+.buttonCategories {
+  background: linear-gradient(135deg, #f5c842 0%, #e6b832 100%);
+  color: #333;
+}
+
+.buttonCategories:hover {
+  background: linear-gradient(135deg, #ffd852 0%, #f6c842 100%);
+}
+
+/* Botón verde - Historial */
+.buttonHistory {
+  background: linear-gradient(135deg, #4caf50 0%, #3d9e40 100%);
+}
+
+.buttonHistory:hover {
+  background: linear-gradient(135deg, #5cbf60 0%, #4dae50 100%);
+}
+
+/* Íconos dentro de los botones */
+.buttonIcon {
+  font-size: 1.4rem;
+  margin-right: 0.5rem;
+}
+
+.buttonText {
+  flex-grow: 1;
+  text-align: center;
+}
+
+.buttonArrow {
+  font-size: 1.4rem;
+  margin-left: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .button {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .buttonsContainer {
+    max-width: 90%;
   }
 }
 
-@media (max-width: 600px) {
-  .main {
-    padding: 48px 24px;
+@media (max-width: 480px) {
+  .button {
+    font-size: 0.9rem;
+    padding: 0.8rem 1.2rem;
   }
-
-  .intro {
-    gap: 16px;
+  
+  .backgroundContainer {
+    padding-bottom: 2rem;
   }
-
-  .intro h1 {
-    font-size: 32px;
-    line-height: 40px;
-    letter-spacing: -1.92px;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .logo {
-    filter: invert();
-  }
-
-  .page {
-    --background: #000;
-    --foreground: #000;
-
-    --text-primary: #ededed;
-    --text-secondary: #999;
-
-    --button-primary-hover: #ccc;
-    --button-secondary-hover: #1a1a1a;
-    --button-secondary-border: #1a1a1a;
-  }
-}
-
-.code {
-  font-family: var(--font-geist-mono);
-  font-size: 0.9em;
-  background: color-mix(in srgb, currentColor 8%, transparent);
-  padding: 0.1em 0.4em;
-  border-radius: 6px;
 }
