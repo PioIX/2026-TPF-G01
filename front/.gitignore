@@ -17,6 +17,8 @@
 /.next/
 /.next*
 .next*
+.next-a
+.next-b
 /out/
 
 # production
