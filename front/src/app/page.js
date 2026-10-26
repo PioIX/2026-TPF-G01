@@ -16,7 +16,7 @@ export default function Home() {
       <div className={styles.backgroundContainer}>
         <div className={styles.buttonsContainer}>
           
-          <Link href="/login" className={`${styles.button} ${styles.buttonLogin}`}>
+          <Link href="/usuarios" className={`${styles.button} ${styles.buttonLogin}`}>
             <span className={styles.buttonIcon}>👤</span>
             <span className={styles.buttonText}>Iniciar sesión / Registrarse</span>
             <span className={styles.buttonArrow}>→</span>
