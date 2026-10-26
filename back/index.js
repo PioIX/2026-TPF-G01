@@ -1,15 +1,39 @@
-var express = require('express'); //Tipo de servidor: Express
-var bodyParser = require('body-parser'); //Convierte los JSON
-var cors = require('cors');
-const { realizarQuery } = require('./modulos/mysql');
+const express = require("express");
+const cors = require("cors");
+const session = require("express-session");
+const { Server } = require("socket.io");
 
-var app = express(); //Inicializo express
-var port = process.env.PORT || 4000; 
+const app = express();
+const PORT = process.env.PORT || 4000;
 
 // Convierte una petición recibida (POST-GET...) a objeto JSON
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(express.urlencoded({extended:false}));
 app.use(cors());
+
+const server = app.listen(PORT, () => {
+console.log(`Servidor NodeJS corriendo en http://localhost:${PORT}/`);
+});
+
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:3000", "http://localhost:3001"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  },
+});
+
+
+const sessionMiddleware = session({
+  secret: "supersarasa",
+  resave: false,
+  saveUninitialized: false,
+});
+app.use(sessionMiddleware);
+
+io.use((socket, next) => {
+  sessionMiddleware(socket.request, {}, next);
+});
 
 app.get('/', function (req, res) {
     res.status(200).send({
@@ -18,8 +42,8 @@ app.get('/', function (req, res) {
 });
 
 //Pongo el servidor a escuchar
-app.listen(port, function () {
-    console.log(`Server running in http://localhost:${port}`);
+app.listen(PORT, function () {
+    console.log(`Server running in http://localhost:${PORT}`);
 });
 
 //Colocar su codigo a partir de aca
@@ -92,3 +116,30 @@ app.get("/personajes",async function (req,res) {
     
 })
 
+io.on("connection", (socket) => {
+const req = socket.request;
+
+    socket.on("joinRoom", (data) => {
+        console.log("🚀 ~ io.on ~ req.session.room:", req.session.room);
+        if (req.session.room != undefined && req.session.room.length > 0)
+            socket.leave(req.session.room);
+        req.session.room = data.room;
+        socket.join(req.session.room);
+
+
+        io.to(req.session.room).emit("chat-messages", {
+            user: req.session.user,
+            room: req.session.room,
+    });
+
+    socket.on("inicioJuego", (data) => {
+        let casillas
+        fetch(`http://localhost:4000/personajes?categoria=${data.categoria}`)
+        .then(response => response.json())
+        .then(result => {casillas= {personjes:result.personajes} })
+
+        io.emit("tablero",{casillas})
+        });
+
+    });
+});
