@@ -1,115 +1,79 @@
 "use client";
+import { useState, useEffect, useRef } from "react";
+import { useSocket } from "@/app/hooks/useSocket";
+import styles from "./page.module.css";
 
-import { useEffect, useRef, useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { useSocket } from "@/hooks/useSocket";
-import Message from "@/components/Message";
-import Input from "@/components/Input";
-import Boton from "@/components/Boton";
+// Datos del chat: cambialos por los de tu app (ej: el usuario logueado)
+const USUARIO = "Invitado";
+const SALA = "general";
 
-function ChatInterno() {
-  const searchParams = useSearchParams();
+export default function ChatPage() {
+  const { socket } = useSocket(); // conexión WebSocket con el backend (puerto 4000)
+  const [mensaje, setMensaje] = useState("");   // texto del input
+  const [mensajes, setMensajes] = useState([]); // historial + mensajes en vivo
+  const finalRef = useRef(null);  // marca para el scroll automático
+  const unidoRef = useRef(false); // para unirse a la sala una sola vez
 
-  const idPartida = searchParams.get("id_partida") || "1";
-  const nombre = searchParams.get("nombre") || "Jugador";
-
-  const { socket } = useSocket();
-
-  const [mensajes, setMensajes] = useState([]);
-  const [texto, setTexto] = useState("");
-  const finRef = useRef(null);
-
-  // Me uno al chat de la partida y recibo los mensajes
+  // 1) Escuchar lo que manda el backend
   useEffect(() => {
     if (!socket) return;
 
-    const unirse = () => {
-      socket.emit("unirseChat", Number(idPartida));
-    };
+    // Historial de la sala: llega una sola vez, al entrar (joinRoom)
+    const onHistory = (data) => setMensajes(data);
 
-    const recibir = (mensaje) => {
-      if (String(mensaje.id_partida) === String(idPartida)) {
-        setMensajes((actuales) => [...actuales, mensaje]);
-      }
-    };
+    // Mensaje nuevo en vivo: le llega a todos los sockets de la sala
+    const onNewMessage = (data) => setMensajes((prev) => [...prev, data.message]);
 
-    if (socket.connected) unirse();
-
-    socket.on("connect", unirse);
-    socket.on("nuevoMensaje", recibir);
+    socket.on("chat-history", onHistory);
+    socket.on("newMessage", onNewMessage);
 
     return () => {
-      socket.emit("salirChat", Number(idPartida));
-      socket.off("connect", unirse);
-      socket.off("nuevoMensaje", recibir);
+      socket.off("chat-history", onHistory);
+      socket.off("newMessage", onNewMessage);
     };
-  }, [socket, idPartida]);
+  }, [socket]);
 
-  // Bajar hasta el último mensaje
+  // 2) Entrar a la sala una sola vez
   useEffect(() => {
-    if (finRef.current) {
-      finRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    if (!socket || unidoRef.current) return;
+    unidoRef.current = true;
+    socket.emit("joinRoom", { room: SALA, user: USUARIO });
+  }, [socket]);
+
+  // 3) Scroll al último mensaje
+  useEffect(() => {
+    finalRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [mensajes]);
 
-  // Enviar mensaje
+  // 4) Botón de mandar: emite sendMessage y el backend se lo pasa al otro socket
   function enviar() {
-    if (!socket || !socket.connected || texto.trim() === "") return;
-
-    socket.emit("enviarMensaje", {
-      id_partida: Number(idPartida),
-      nombre_usuario: nombre,
-      texto: texto.trim(),
-    });
-
-    setTexto("");
-  }
-
-  // Enviar con Enter
-  function teclado(event) {
-    if (event.key === "Enter") enviar();
+    if (!mensaje.trim()) return;
+    socket.emit("sendMessage", { message: mensaje, user: USUARIO, id: socket.id });
+    setMensaje("");
   }
 
   return (
-    <div className="pantalla-chat">
-      <header className="chat-header">
-        <h2>Chat de la partida {idPartida}</h2>
-        <p>{nombre}</p>
-      </header>
-
-      <div className="mensajes">
+    <div className={styles.chat}>
+      <div className={styles.mensajes}>
         {mensajes.map((m, i) => (
-          <Message
-            key={i}
-            texto={m.texto}
-            nombre={m.nombre}
-            fecha={m.fecha}
-            esMio={m.nombre === nombre}
-          />
+          <p key={i} className={m.id === socket.id ? styles.mio : styles.otro}>
+            <b>{m.id === socket.id ? "Vos" : m.user}: </b>
+            {m.message}
+          </p>
         ))}
-
-        <div ref={finRef}></div>
+        <div ref={finalRef} />
       </div>
 
-      <div className="barra-entrada">
-        <Input
-          tipo="text"
-          placeholder="Escribí un mensaje"
-          valor={texto}
-          onChange={setTexto}
-          onKeyDown={teclado}
-        />
-
-        <Boton onClick={enviar} texto="Enviar" />
-      </div>
+      {/* Input y botón directo en la página (NO son componentes aparte) */}
+      <input
+        value={mensaje}
+        onChange={(e) => setMensaje(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") enviar();
+        }}
+        placeholder="Escribí un mensaje..."
+      />
+      <button onClick={enviar}>Enviar</button>
     </div>
-  );
-}
-
-export default function ChatPage() {
-  return (
-    <Suspense fallback={<p>Cargando...</p>}>
-      <ChatInterno />
-    </Suspense>
   );
 }
