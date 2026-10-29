@@ -1,6 +1,6 @@
 "use client"
 
-import Casilla from "./Casilla";
+import Casilla from "./casilla";
 import { useEffect, useState } from "react";
 
 export default function Tablero({ casillas }) {

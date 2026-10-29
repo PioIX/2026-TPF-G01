@@ -41,12 +41,6 @@ app.get('/', function (req, res) {
     });
 });
 
-//Pongo el servidor a escuchar
-app.listen(PORT, function () {
-    console.log(`Server running in http://localhost:${PORT}`);
-});
-
-//Colocar su codigo a partir de aca
 
 //Agarrar usuarios de la base de datos
 app.get('/usuarios', async function (req, res) {
@@ -137,7 +131,7 @@ const req = socket.request;
         fetch(`http://localhost:4000/personajes?categoria=${data.categoria}`)
         .then(response => response.json())
         .then(result => {casillas= {personjes:result.personajes} })
-
+        console.log("empezo el juego 67")
         io.emit("tablero",{casillas})
         });
 

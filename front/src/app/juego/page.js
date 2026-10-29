@@ -3,17 +3,20 @@
 import { useEffect, useState } from "react";
 import Boton from "@/components/Boton";
 import Tablero from "@/components/Tablero";
-import { useSocket } from "../hooks/useSocket"
-import { Socket } from "socket.io-client";
+import useSocket from "@/app/hooks/useSocket";
 
 export default function JuegoPage() {
     const { socket, isConnected } = useSocket();
     const [casillas, setCasillas] = useState([])
+    const [empezado, setEmpezado] = useState(false)
 
     useEffect(() => {
-        if (!socket)return; 
+        if (!socket){return}; 
+        if (!empezado){
             socket.emit("inicioJuego", { categoria: "actores" });
-    }, []);
+            setEmpezado(true)
+        }
+    }, [socket]);
 
 
     useEffect(() => {
