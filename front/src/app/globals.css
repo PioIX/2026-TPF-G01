@@ -48,13 +48,17 @@ a {
   }
 }
 
+/* ======================================================
+   TABLERO Y CASILLAS
+   ====================================================== */
+
 .tablero {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   grid-template-rows: repeat(4, auto);
   gap: 10px;
   width: 100%;
-  max-width: 640px;
+  max-width: 700px;
   padding: 12px;
   box-sizing: border-box;
   background: #0a2a70;
@@ -135,4 +139,167 @@ a {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* ======================================================
+   LAYOUT GENERAL DEL JUEGO
+   ====================================================== */
+
+#juego {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+  background: #0b2a8a;
+  color: #ffffff;
+}
+
+/* El tablero ocupa el espacio de la izquierda */
+#juego .tablero {
+  flex: 1;
+}
+
+/* ======================================================
+   PANEL DERECHO
+   ====================================================== */
+
+#derecha {
+  width: 340px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: calc(100vh - 32px);
+}
+
+/* Personaje elegido */
+#personaje {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  background: #0a2a70;
+  border: 2px solid #2f6fd6;
+  border-radius: 12px;
+}
+
+#personaje img {
+  width: 110px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid #2f6fd6;
+}
+
+#personaje p {
+  margin-top: 8px;
+  font-weight: 700;
+}
+
+/* Chat */
+#chat {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px;
+  background: #0a2a70;
+  border: 2px solid #2f6fd6;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+#chat p {
+  margin-bottom: 8px;
+}
+
+#chat b {
+  color: #7fb0ff;
+}
+
+/* Pregunta (input + botón) */
+#pregunta {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  background: #0a2a70;
+  border: 2px solid #2f6fd6;
+  border-radius: 12px;
+}
+
+#pregunta input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 20px;
+  outline: none;
+  font-size: 14px;
+}
+
+#pregunta button {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background: #1fa2ff;
+  color: #ffffff;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* Respuesta (Sí / No) */
+#respuesta {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background: #0a2a70;
+  border: 2px solid #2f6fd6;
+  border-radius: 12px;
+}
+
+#respuesta button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+#respuesta button:first-child {
+  background: #2ecc40;
+}
+
+#respuesta button:last-child {
+  background: #e63946;
+}
+
+#pregunta button:hover,
+#respuesta button:hover {
+  filter: brightness(1.15);
+}
+
+/* ======================================================
+   MOBILE
+   ====================================================== */
+
+@media (max-width: 900px) {
+  #juego {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #derecha {
+    width: 100%;
+    height: auto;
+  }
+
+  #chat {
+    min-height: 200px;
+  }
 }

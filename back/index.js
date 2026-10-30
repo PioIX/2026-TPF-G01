@@ -2,11 +2,12 @@ const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 const { Server } = require("socket.io");
+const { realizarQuery } = require("./modulos/mysql");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Convierte una petición recibida (POST-GET...) a objeto JSON
+
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
 app.use(cors());
@@ -55,7 +56,6 @@ app.get('/usuarios', async function (req, res) {
     }
 })
 
-//Registro para agregar un usuario a la base de datos, o sea que el usuario ponga un nombre en el campo, un mail, una contraseña y cuando toca el boton registro se guarde ese usuario y se sume a la base de datos
 app.post('/usuarios', async function (req, res) {
     try {
 
@@ -75,7 +75,7 @@ app.post('/usuarios', async function (req, res) {
     }
 })
 
-//Iniciar sesion (login)
+
 app.post('/login', async function (req, res) {
     try {
 
@@ -99,16 +99,6 @@ app.post('/login', async function (req, res) {
     }
 });
 
-app.get("/personajes",async function (req,res) {
-    try {
-        const personajes=await realizarQuery(`Select nombre_casilla,img FROM Personajes WHERE tabla="${req.query.categoria}" ORDER BY RAND() limit 20`)
-        res.send({personajes:personajes})
-    } catch (error) {
-        res.status(500).send({ error: error.message });
-
-    }
-    
-})
 
 io.on("connection", (socket) => {
 const req = socket.request;
@@ -124,16 +114,16 @@ const req = socket.request;
         io.to(req.session.room).emit("chat-messages", {
             user: req.session.user,
             room: req.session.room,
+        });
     });
 
-    socket.on("inicioJuego", (data) => {
-        let casillas
-        fetch(`http://localhost:4000/personajes?categoria=${data.categoria}`)
-        .then(response => response.json())
-        .then(result => {casillas= {personjes:result.personajes} })
-        console.log("empezo el juego 67")
-        io.emit("tablero",{casillas})
-        });
+    socket.on("inicioJuego", async (data) => {
+        async function obtenerPersonajes(categoria) {
+            return await realizarQuery(`SELECT nombre_casilla, img FROM Personajes WHERE tabla="${categoria}" ORDER BY RAND() LIMIT 24`);
+        }
 
+        const personajes = await obtenerPersonajes(data.categoria);
+        console.log("empezo el juego");
+        io.to(req.session.room).emit("tablero", { personajes });
     });
 });

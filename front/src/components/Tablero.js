@@ -8,8 +8,8 @@ export default function Tablero({ casillas }) {
 
   function dividirEnGrupos(lista) {
   const resultado = [];
-  for (let i = 0; i < lista.length; i += 5) {
-    resultado.push(lista.slice(i, i + 5));
+  for (let i = 0; i < lista.length; i += 6) {
+    resultado.push(lista.slice(i, i + 6));
   }
   return resultado;
 }
@@ -22,10 +22,10 @@ export default function Tablero({ casillas }) {
   const columnas = tablero[0]?.length ?? 0;
 
   const [visibles,setVisibles] = useState([
-        [true,true,true,true,true],
-        [true,true,true,true,true],
-        [true,true,true,true,true],
-        [true,true,true,true,true],
+        [true,true,true,true,true,true],
+        [true,true,true,true,true,true],
+        [true,true,true,true,true,true],
+        [true,true,true,true,true,true],
     ])
     
   const alternar = (i, j) => {
