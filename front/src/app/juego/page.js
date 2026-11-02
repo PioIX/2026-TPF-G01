@@ -9,7 +9,10 @@ export default function JuegoPage() {
     const { socket, isConnected } = useSocket();
     const [casillas, setCasillas] = useState([]);
     const juegoIniciado = useRef(false);
-    const [estado,setEstado] = useState("responder")
+    const [estado,setEstado] = useState("preguntar")
+    const [pregunta,setPregunta] = useState("")
+    const [chat,setChat] = useState([])
+    const [paraResponder,setParaResponder]=useState("")
 
     useEffect(() => {
         if (!socket) return;
@@ -24,21 +27,50 @@ export default function JuegoPage() {
         if (!juegoIniciado.current) {
             juegoIniciado.current = true;
             socket.emit("joinRoom",{room:"pio"})
-            socket.emit("inicioJuego", { categoria: "actores" });
+           /* socket.emit("inicioJuego", { categoria: "futbolistas" }); */
         }
+
+        const onPregunta = (data)=>{
+            console.log("pregunta recibida")
+            setChat((prev) => [...prev, data]);
+            setParaResponder(data.pregunta)
+            setEstado("responder")
+        }
+
+        socket.on("pregunta",onPregunta)
 
         return () => {
             socket.off("tablero", onTablero);
+            socket.off("pregunta", onPregunta);
         };
     }, [socket]);
 
+    function actpregunta(event){
+        setPregunta(event.target.value)
+    }
+
+    function enviar(){
+        if(pregunta.length>120){return}
+        socket.emit("pregunta",{pregunta:pregunta})
+        setEstado("")
+    }
+
+    function responder(rta){
+        setChat((prev) => [...prev, {pregunta:paraResponder.pregunta,respuesta:rta}]);
+        socket.emit("respuesta",{})
+    }
 return (
     <div id="juego">
+        <div id="arrba">
+            <h2 id="sala">sala</h2>
+            <h1>Adivinalichi</h1>
+            <Boton onClick={()=>{socket.emit("inicioJuego", { categoria: "futbolistas" });}}> empezar</Boton>
+        </div>
         <Tablero casillas={casillas}></Tablero>
 
         <div id="derecha">
             <div id="personaje">
-                <img alt="casilla elegida" src=""></img>
+                <img alt="casilla elegida" src={undefined}></img>
                 <p>pj</p>
             </div>
 
@@ -48,16 +80,20 @@ return (
 
             {estado === "preguntar" && (
                 <div id="pregunta">
-                    <input placeholder="Escriba su pregunta"></input>
-                    <Boton id="enviar"></Boton>
+                    <input placeholder="Escriba su pregunta" onChange={actpregunta}></input>
+                    <Boton id="enviar" onClick={enviar}></Boton>
+                    {pregunta.length>120 && <p>pregunta muy larga</p>}
                 </div>
             )}
 
             {estado === "responder" && (
-                <div id="respuesta">
-                    <Boton onClick={() => responder(true)}></Boton>
-                    <Boton onClick={() => responder(false)}></Boton>
+            <div id="respuesta">
+                <h3>{paraResponder}</h3>
+                <div className="botones">
+                <Boton onClick={() => responder(true)}>SÍ</Boton>
+                <Boton onClick={() => responder(false)}>NO</Boton>
                 </div>
+            </div>
             )}
         </div>
     </div>

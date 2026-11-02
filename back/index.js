@@ -126,4 +126,8 @@ const req = socket.request;
         console.log("empezo el juego");
         io.to(req.session.room).emit("tablero", { personajes });
     });
+
+    socket.on("pregunta", (data)=>{
+            socket.to(req.session.room).emit("pregunta", {pregunta: data.pregunta});
+    })
 });
