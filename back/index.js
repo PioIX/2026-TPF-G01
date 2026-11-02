@@ -1,15 +1,40 @@
-var express = require('express'); //Tipo de servidor: Express
-var bodyParser = require('body-parser'); //Convierte los JSON
-var cors = require('cors');
-const { realizarQuery } = require('./modulos/mysql');
+const express = require("express");
+const cors = require("cors");
+const session = require("express-session");
+const { Server } = require("socket.io");
+const { realizarQuery } = require("./modulos/mysql");
 
-var app = express(); //Inicializo express
-var port = process.env.PORT || 4000; //Ejecuto el servidor en el puerto 3000
+const app = express();
+const PORT = process.env.PORT || 4000;
 
-// Convierte una petición recibida (POST-GET...) a objeto JSON
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+
+app.use(express.json());
+app.use(express.urlencoded({extended:false}));
 app.use(cors());
+
+const server = app.listen(PORT, () => {
+console.log(`Servidor NodeJS corriendo en http://localhost:${PORT}/`);
+});
+
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:3000", "http://localhost:3001"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  },
+});
+
+
+const sessionMiddleware = session({
+  secret: "supersarasa",
+  resave: false,
+  saveUninitialized: false,
+});
+app.use(sessionMiddleware);
+
+io.use((socket, next) => {
+  sessionMiddleware(socket.request, {}, next);
+});
 
 app.get('/', function (req, res) {
     res.status(200).send({
@@ -17,12 +42,6 @@ app.get('/', function (req, res) {
     });
 });
 
-//Pongo el servidor a escuchar
-app.listen(port, function () {
-    console.log(`Server running in http://localhost:${port}`);
-});
-
-//Colocar su codigo a partir de aca
 
 //Agarrar usuarios de la base de datos
 app.get('/usuarios', async function (req, res) {
@@ -37,7 +56,6 @@ app.get('/usuarios', async function (req, res) {
     }
 })
 
-//Registro para agregar un usuario a la base de datos, o sea que el usuario ponga un nombre en el campo, un mail, una contraseña y cuando toca el boton registro se guarde ese usuario y se sume a la base de datos
 app.post('/usuarios', async function (req, res) {
     try {
 
@@ -57,7 +75,7 @@ app.post('/usuarios', async function (req, res) {
     }
 })
 
-//Iniciar sesion (login)
+
 app.post('/login', async function (req, res) {
     try {
 
@@ -81,3 +99,31 @@ app.post('/login', async function (req, res) {
     }
 });
 
+
+io.on("connection", (socket) => {
+const req = socket.request;
+
+    socket.on("joinRoom", (data) => {
+        console.log("🚀 ~ io.on ~ req.session.room:", req.session.room);
+        if (req.session.room != undefined && req.session.room.length > 0)
+            socket.leave(req.session.room);
+        req.session.room = data.room;
+        socket.join(req.session.room);
+
+
+        io.to(req.session.room).emit("chat-messages", {
+            user: req.session.user,
+            room: req.session.room,
+        });
+    });
+
+    socket.on("inicioJuego", async (data) => {
+        async function obtenerPersonajes(categoria) {
+            return await realizarQuery(`SELECT nombre_casilla, img FROM Personajes WHERE tabla="${categoria}" ORDER BY RAND() LIMIT 24`);
+        }
+
+        const personajes = await obtenerPersonajes(data.categoria);
+        console.log("empezo el juego");
+        io.to(req.session.room).emit("tablero", { personajes });
+    });
+});
