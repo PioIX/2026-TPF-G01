@@ -1,59 +1,116 @@
 "use client";
+
 import { useState } from "react";
 import Link from "next/link";
 import styles from "./page.module.css";
+import { useRouter } from "next/navigation";
 
-const URL = "http://localhost:4000";
-const vacio = { nombre_casilla: "", img: "", tabla: "" };
+const vacio = {
+  nombre_casilla: "",
+  img: "",
+  tabla: ""
+};
 
-export default function Admin() {
+export default function AdminPage() {
+
   const [modo, setModo] = useState("crear");
   const [idEditar, setIdEditar] = useState("");
   const [idEliminar, setIdEliminar] = useState("");
   const [form, setForm] = useState(vacio);
+  const router = useRouter();
 
-  function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  }
 
-  async function handleEliminar() {
-    if (!idEliminar) { alert("Ingresá un ID"); return; }
-    await fetch(`${URL}/personajes`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id_casilla: Number(idEliminar) }),
+  const volverMenu = () => {
+    router.push("/");
+  };
+
+  // CAMBIAR LOS DATOS
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value
     });
+  };
+
+
+  // ELIMINAR PERSONAJE
+  const handleEliminar = async () => {
+
+    if (idEliminar === "") {
+      alert("Ingresá un ID");
+      return;
+    }
+
+    await fetch("http://localhost:4000/personajes", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        id_casilla: Number(idEliminar)
+      })
+    });
+
     alert("Personaje eliminado");
     setIdEliminar("");
-  }
 
-  async function handleGuardar() {
-    if (!form.nombre_casilla || !form.img || !form.tabla) {
+  };
+
+
+  // GUARDAR PERSONAJE
+  const handleGuardar = async () => {
+
+    if (form.nombre_casilla === "" || form.img === "" || form.tabla === "") {
       alert("Rellene todos los campos");
       return;
     }
-    if (modo == "editar" && !idEditar) {
+
+    if (modo === "editar" && idEditar === "") {
       alert("Ingresá el ID a editar");
       return;
     }
-    const datos = modo == "editar"
-      ? { id_casilla: Number(idEditar), ...form }
-      : form;
 
-    await fetch(`${URL}/personajes`, {
-      method: modo == "crear" ? "POST" : "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(datos),
+
+    let datos = form;
+
+    if (modo === "editar") {
+      datos = {
+        id_casilla: Number(idEditar),
+        ...form
+      };
+    }
+
+
+    await fetch("http://localhost:4000/personajes", {
+      method: modo === "crear" ? "POST" : "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(datos)
     });
-    alert(modo == "crear" ? "Personaje creado correctamente." : "Personaje editado correctamente.");
-    setForm(vacio);
-  }
 
+
+    if (modo === "crear") {
+      alert("Personaje creado correctamente");
+    } else {
+      alert("Personaje editado correctamente");
+    }
+
+    setForm(vacio);
+    setIdEditar("");
+
+  };
+
+  //elñiminar personaja
   return (
+
     <div className={styles.page}>
+
       <main className={styles.main}>
         <h1>Panel de administración</h1>
-        <p className={styles.descripcion}>Creá, editá o eliminá personajes del juego</p>
+        <p className={styles.descripcion}>
+          Creá, editá o eliminá personajes del juego
+        </p>
 
         <div className={styles.contenedor}>
 
@@ -68,31 +125,49 @@ export default function Admin() {
               value={idEliminar}
               onChange={(e) => setIdEliminar(e.target.value)}
             />
-            <button className={`${styles.boton} ${styles.botonEliminar}`} onClick={handleEliminar}>
+
+            <button
+              className={`${styles.boton} ${styles.botonEliminar}`}
+              onClick={handleEliminar}
+            >
               Eliminar
             </button>
+
           </div>
 
+          {/* CREAR O EDITAR PERSONAJE */}
           <div className={styles.tarjeta}>
-            <span className={styles.icono}>{modo == "crear" ? "⚡" : "✏️"}</span>
-            <h2>{modo == "crear" ? "Crear personaje" : "Editar personaje"}</h2>
+
+            <span className={styles.icono}>
+              {modo === "crear" ? "⚡" : "✏️"}
+            </span>
+
+            <h2>
+              {modo === "crear" ? "Crear personaje" : "Editar personaje"}
+            </h2>
+
 
             <div className={styles.toggle}>
+
               <button
-                className={`${styles.toggleBtn} ${modo == "crear" ? styles.activo : ""}`}
+                className={`${styles.toggleBtn} ${modo === "crear" ? styles.activo : ""}`}
                 onClick={() => setModo("crear")}
               >
                 Crear
               </button>
+
               <button
-                className={`${styles.toggleBtn} ${modo == "editar" ? styles.activo : ""}`}
+                className={`${styles.toggleBtn} ${modo === "editar" ? styles.activo : ""}`}
                 onClick={() => setModo("editar")}
               >
                 Editar
               </button>
+
             </div>
 
-            {modo == "editar" && (
+
+            {modo === "editar" && (
+
               <input
                 className={styles.input}
                 type="number"
@@ -103,17 +178,53 @@ export default function Admin() {
               />
             )}
 
-            <input className={styles.input} type="text" name="nombre_casilla" placeholder="Nombre" value={form.nombre_casilla} onChange={handleChange} />
-            <input className={styles.input} type="text" name="img" placeholder="URL de imagen" value={form.img} onChange={handleChange} />
-            <input className={styles.input} type="text" name="tabla" placeholder="Tabla" value={form.tabla} onChange={handleChange} />
+            <input
+              className={styles.input}
+              type="text"
+              name="nombre_casilla"
+              placeholder="Nombre"
+              value={form.nombre_casilla}
+              onChange={handleChange}
+            />
 
-            <button className={styles.boton} onClick={handleGuardar}>Confirmar</button>
+            <input
+              className={styles.input}
+              type="text"
+              name="img"
+              placeholder="URL de imagen"
+              value={form.img}
+              onChange={handleChange}
+            />
+
+            <input
+              className={styles.input}
+              type="text"
+              name="tabla"
+              placeholder="Tabla"
+              value={form.tabla}
+              onChange={handleChange}
+            />
+
+
+            <button
+              className={styles.boton}
+              onClick={handleGuardar}
+            >
+              Confirmar
+            </button>
+
           </div>
 
         </div>
 
-        <Link href="/" className={styles.volver}>← Volver al menú</Link>
+        <button className={styles.volver} onClick={volverMenu}>
+          Volver al menú/pagina de inicio
+          </button>
+
       </main>
+
     </div>
+
   );
+
 }

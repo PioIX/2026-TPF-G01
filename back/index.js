@@ -103,7 +103,53 @@ app.post('/login', async function (req, res) {
     }
 });
 
+// AGREGAR PERSONAJE
+app.post("/personajes", async function (req, res) {
+    try {
 
+        await realizarQuery(`
+            INSERT INTO Personajes (nombre_casilla, img, tabla) 
+            VALUES (
+            "${req.body.nombre_casilla}", 
+            "${req.body.img}", 
+            "${req.body.tabla}"
+            )`);
+        res.send("Personaje agregado");
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
+});
+
+
+// EDITAR PERSONAJE
+app.put("/personajes", async function (req, res) {
+    try {
+        await realizarQuery(`
+            UPDATE Personajes SET 
+            nombre_casilla="${req.body.nombre_casilla}",
+            img="${req.body.img}",
+            tabla="${req.body.tabla}"
+            WHERE id_casilla=${req.body.id_casilla}
+        `);
+        res.send("Personaje editado");
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
+});
+
+
+// ELIMINAR PERSONAJE
+app.delete("/personajes", async function (req, res) {
+    try {
+
+        await realizarQuery(`
+            DELETE FROM Personajes WHERE id_casilla=${req.body.id_casilla}`
+        );
+        res.send("Personaje eliminado");
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
+});
 
 io.on("connection", (socket) => {
     const req = socket.request;
