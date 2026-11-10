@@ -1,3 +1,7 @@
+/* ======================================================
+   VARIABLES Y BASE
+   ====================================================== */
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -7,6 +11,10 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+  }
+
+  html {
+    color-scheme: dark;
   }
 }
 
@@ -42,12 +50,6 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-}
-
 /* ======================================================
    TABLERO Y CASILLAS
    ====================================================== */
@@ -55,18 +57,18 @@ a {
 .tablero {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: repeat(4, auto);
+  grid-auto-rows: auto;
+  align-content: start;
+  align-items: start;
   gap: 10px;
   width: 100%;
-  max-width: 700px;
   padding: 12px;
-  box-sizing: border-box;
   background: #0a2a70;
   border: 2px solid #2f6fd6;
   border-radius: 12px;
 }
 
-/* Contenedor: define la perspectiva y el tamaño */
+/* Contenedor: proporción fija para que las fotos no se deformen */
 .casilla {
   aspect-ratio: 7 / 8;
   min-width: 0;
@@ -94,7 +96,6 @@ a {
   inset: 0;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
   overflow: hidden;
   border-radius: 10px;
   backface-visibility: hidden;
@@ -125,10 +126,11 @@ a {
   min-height: 0;
   width: 100%;
   object-fit: cover;
+  object-position: top center; /* prioriza la cara */
   border-radius: 8px;
 }
 
-/* Reverso: ya viene girado 180°, así queda oculto hasta que el contenedor rota */
+/* Reverso: ya viene girado 180°, queda oculto hasta que el contenedor rota */
 .cara.reverso {
   background: #123a8c;
   border: 2px solid #2f6fd6;
@@ -139,6 +141,7 @@ a {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
 }
 
 /* ======================================================
@@ -151,14 +154,18 @@ a {
   align-items: flex-start;
   justify-content: center;
   gap: 16px;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
   padding: 16px;
   background: #0b2a8a;
   color: #ffffff;
 }
 
-/* El tablero ocupa el espacio de la izquierda */
 #juego .tablero {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 480px;
+  max-width: 900px;
 }
 
 /* ======================================================
@@ -166,8 +173,9 @@ a {
    ====================================================== */
 
 #derecha {
-  width: 340px;
-  flex-shrink: 0;
+  flex: 0 1 340px;
+  min-width: 240px;
+  width: auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -189,6 +197,7 @@ a {
   width: 110px;
   height: 110px;
   object-fit: cover;
+  object-position: top center;
   border-radius: 10px;
   border: 2px solid #2f6fd6;
 }
@@ -208,6 +217,7 @@ a {
   border: 2px solid #2f6fd6;
   border-radius: 12px;
   font-size: 14px;
+  overflow-wrap: anywhere;
 }
 
 #chat p {
@@ -218,7 +228,10 @@ a {
   color: #7fb0ff;
 }
 
-/* Pregunta (input + botón) */
+/* ======================================================
+   PREGUNTA (input + botón de enviar)
+   ====================================================== */
+
 #pregunta {
   display: flex;
   gap: 8px;
@@ -250,52 +263,111 @@ a {
   cursor: pointer;
 }
 
-/* Respuesta (Sí / No) */
+#pregunta button:hover {
+  filter: brightness(1.15);
+}
+
+/* ======================================================
+   RESPUESTA (pregunta arriba, SÍ / NO abajo)
+   ====================================================== */
+
 #respuesta {
   display: flex;
-  gap: 10px;
-  padding: 10px;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 12px 18px;
+  overflow: hidden;
   background: #0a2a70;
   border: 2px solid #2f6fd6;
   border-radius: 12px;
 }
 
+#respuesta h3 {
+  width: 100%;
+  max-height: 120px;
+  margin: 0;
+  overflow-y: auto;
+  overflow-wrap: anywhere;   /* corta palabras largas sin espacios */
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.3;
+  color: #ffffff;
+}
+
+#respuesta .botones {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+}
+
 #respuesta button {
   flex: 1;
-  padding: 12px;
+  max-width: 130px;
+  height: 46px;
   border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 700;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
   color: #ffffff;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.3);
   cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s, filter 0.15s;
 }
 
+/* SÍ */
 #respuesta button:first-child {
-  background: #2ecc40;
+  background: linear-gradient(180deg, #4be25d 0%, #22a834 100%);
+  box-shadow: 0 5px 0 #168024, 0 8px 12px rgba(0, 0, 0, 0.35);
 }
 
+/* NO */
 #respuesta button:last-child {
-  background: #e63946;
+  background: linear-gradient(180deg, #ff5c68 0%, #d32f3c 100%);
+  box-shadow: 0 5px 0 #9c1f2a, 0 8px 12px rgba(0, 0, 0, 0.35);
 }
 
-#pregunta button:hover,
 #respuesta button:hover {
-  filter: brightness(1.15);
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+/* Efecto de botón que se hunde */
+#respuesta button:active {
+  transform: translateY(4px);
+}
+
+#respuesta button:first-child:active {
+  box-shadow: 0 1px 0 #168024, 0 3px 6px rgba(0, 0, 0, 0.35);
+}
+
+#respuesta button:last-child:active {
+  box-shadow: 0 1px 0 #9c1f2a, 0 3px 6px rgba(0, 0, 0, 0.35);
 }
 
 /* ======================================================
    MOBILE
    ====================================================== */
 
-@media (max-width: 900px) {
+@media (max-width: 800px) {
   #juego {
     flex-direction: column;
     align-items: stretch;
   }
 
+  #juego .tablero {
+    min-width: 0;
+    max-width: none;
+  }
+
   #derecha {
+    flex: none;
     width: 100%;
+    min-width: 0;
     height: auto;
   }
 

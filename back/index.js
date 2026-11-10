@@ -184,5 +184,8 @@ io.on("connection", (socket) => {
     });
 
     
+    socket.on("pregunta", (data)=>{
+            socket.to(req.session.room).emit("pregunta", {pregunta: data.pregunta});
+    })
 });
 
