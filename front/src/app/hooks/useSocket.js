@@ -1,35 +1,35 @@
+
 import { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 
-const useSocket = (options = { withCredentials: false }, serverUrl = "ws://localhost:4000/") => { //ACÁ PONER LA IP DEL BACK
-  const [socket, setSocket] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
+const useSocket = (options = { withCredentials: true }, serverUrl = "http://localhost:4000") => {
 
-  useEffect(() => {
-    // Crear una conexión con el backend usando Socket.IO
-    const socketIo = io(serverUrl, options);
+    const [socket, setSocket] = useState(null);
+    const [isConnected, setIsConnected] = useState(false);
 
-    // Actualizar el estado de la conexión
-    socketIo.on('connect', () => {
-      setIsConnected(true);
-      console.log('WebSocket connectado.');
-    });
+    useEffect(() => {
 
-    socketIo.on('disconnect', () => {
-      setIsConnected(false);
-      console.log('WebSocket desconectado');
-    });
+        const socketIo = io(serverUrl, options);
 
-    // Guardar la instancia del socket en el estado
-    setSocket(socketIo);
+        socketIo.on('connect', () => {
+            setIsConnected(true);
+            console.log('WebSocket conectado.');
+        });
 
-    // Limpiar la conexión cuando el componente se desmonte
-    return () => {
-      socketIo.disconnect();
-    };
-  }, [serverUrl, JSON.stringify(options)]);
+        socketIo.on('disconnect', () => {
+            setIsConnected(false);
+            console.log('WebSocket desconectado');
+        });
 
-  return { socket, isConnected };
+        setSocket(socketIo);
+
+        return () => {
+            socketIo.disconnect();
+        };
+
+    }, [serverUrl, JSON.stringify(options)]);
+
+    return { socket, isConnected };
 };
 
-export default useSocket ;
+export default useSocket;

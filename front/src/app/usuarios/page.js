@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Boton from "@/components/Boton";
+import styles from "./page.module.css";
 
 export default function UsuariosPage() {
 
@@ -12,7 +13,6 @@ export default function UsuariosPage() {
   const [registro, setRegistro] = useState(false);
 
   const Login = () => {
-
     fetch("http://localhost:4000/login", {
       method: "POST",
       headers: {
@@ -34,7 +34,6 @@ export default function UsuariosPage() {
   };
 
   const Registro = () => {
-
     fetch("http://localhost:4000/usuarios", {
       method: "POST",
       headers: {
@@ -57,18 +56,17 @@ export default function UsuariosPage() {
   };
 
   return (
-    <div>
-
+    <div className={styles.container}>
       {registro ? (
-        <div>
-
-          <h1>Registrarse</h1>
+        <div className={styles.formContainer}>
+          <h1 className={styles.title}>Registrarse</h1>
 
           <input
             type="text"
             placeholder="Nombre de usuario"
             value={nombre_usuario}
             onChange={(e) => setNombre_usuario(e.target.value)}
+            className={styles.input}
           />
 
           <input
@@ -76,6 +74,7 @@ export default function UsuariosPage() {
             placeholder="Mail"
             value={mail}
             onChange={(e) => setMail(e.target.value)}
+            className={styles.input}
           />
 
           <input
@@ -83,30 +82,35 @@ export default function UsuariosPage() {
             placeholder="Contraseña"
             value={contrasena}
             onChange={(e) => setContrasena(e.target.value)}
+            className={styles.input}
           />
 
-          <Boton
+          <button 
             onClick={Registro}
-            texto="Registrarse"
-          />
+            className={styles.submitButton}
+          >
+            Registrarse
+          </button>
 
-          <p>{mensaje}</p>
+          {mensaje && <p className={styles.message}>{mensaje}</p>}
 
-          <button onClick={() => setRegistro(false)}>
+          <button 
+            onClick={() => setRegistro(false)}
+            className={styles.toggleButton}
+          >
             Ya tengo una cuenta
           </button>
-
         </div>
       ) : (
-        <div>
-
-          <h1>Iniciar sesión</h1>
+        <div className={styles.formContainer}>
+          <h1 className={styles.title}>Iniciar sesión</h1>
 
           <input
             type="email"
             placeholder="Mail"
             value={mail}
             onChange={(e) => setMail(e.target.value)}
+            className={styles.input}
           />
 
           <input
@@ -114,22 +118,26 @@ export default function UsuariosPage() {
             placeholder="Contraseña"
             value={contrasena}
             onChange={(e) => setContrasena(e.target.value)}
+            className={styles.input}
           />
 
-          <Boton
+          <button 
             onClick={Login}
-            texto="Iniciar sesión"
-          />
-
-          <p>{mensaje}</p>
-
-          <button onClick={() => setRegistro(true)}>
-            No tengo una cuenta
+            className={styles.submitButton}
+          >
+            Iniciar sesión
           </button>
 
+          {mensaje && <p className={styles.message}>{mensaje}</p>}
+
+          <button 
+            onClick={() => setRegistro(true)}
+            className={styles.toggleButton}
+          >
+            No tengo una cuenta
+          </button>
         </div>
       )}
-
     </div>
   );
 }

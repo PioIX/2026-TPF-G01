@@ -6,11 +6,15 @@ const { realizarQuery } = require("./modulos/mysql");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-
+const crypto = require("crypto");
+const turnos = new Map();
 
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
-app.use(cors());
+app.use(cors({
+    origin: ["http://localhost:3000", "http://localhost:3001"],
+    credentials: true
+}));
 
 const server = app.listen(PORT, () => {
 console.log(`Servidor NodeJS corriendo en http://localhost:${PORT}/`);
@@ -100,34 +104,88 @@ app.post('/login', async function (req, res) {
 });
 
 
+
 io.on("connection", (socket) => {
-const req = socket.request;
+    const req = socket.request;
 
-    socket.on("joinRoom", (data) => {
-        console.log("🚀 ~ io.on ~ req.session.room:", req.session.room);
-        if (req.session.room != undefined && req.session.room.length > 0)
+    // CREAR SALA
+    socket.on("crearSala", () => {
+        let codigo = crypto.randomBytes(3).toString("hex").toUpperCase();
+
+        while (io.sockets.adapter.rooms.has(codigo)) {
+            codigo = crypto.randomBytes(3).toString("hex").toUpperCase();
+        }
+
+        if (req.session.room != undefined && req.session.room.length > 0) {
             socket.leave(req.session.room);
-        req.session.room = data.room;
-        socket.join(req.session.room);
+        }
 
+        req.session.room = codigo;
+        socket.join(codigo);
 
-        io.to(req.session.room).emit("chat-messages", {
-            user: req.session.user,
-            room: req.session.room,
-        });
+        console.log("Sala creada:", codigo);
+
+        socket.emit("salaCreada", { room: codigo });
     });
 
+
+    // UNIRSE A UNA SALA
+    socket.on("joinRoom", (data) => {
+        const codigo = data.room.toUpperCase();
+        const sala = io.sockets.adapter.rooms.get(codigo);
+
+        if (sala == undefined) {
+            socket.emit("errorSala", "La sala no existe");
+            return;
+        }
+
+        const yaEsta = socket.rooms.has(codigo);
+
+        if (sala.size >= 2 && !yaEsta) {
+            socket.emit("errorSala", "La sala está completa");
+            return;
+        }
+
+        if (req.session.room != undefined && req.session.room.length > 0 && req.session.room != codigo) {
+            socket.leave(req.session.room);
+        }
+
+        req.session.room = codigo;
+        socket.join(codigo);
+
+        console.log("Jugador unido a:", codigo);
+
+        io.to(codigo).emit("chat-messages", {
+            user: req.session.user,
+            room: codigo
+        });
+
+        const jugadores = io.sockets.adapter.rooms.get(codigo).size;
+
+        console.log("Jugadores en la sala:", jugadores);
+
+        if (jugadores == 2 && !yaEsta) {
+            io.to(codigo).emit("partidaLista", { room: codigo });
+        }
+    });
+
+
+    // INICIAR JUEGO
     socket.on("inicioJuego", async (data) => {
         async function obtenerPersonajes(categoria) {
             return await realizarQuery(`SELECT nombre_casilla, img FROM Personajes WHERE tabla="${categoria}" ORDER BY RAND() LIMIT 24`);
         }
 
         const personajes = await obtenerPersonajes(data.categoria);
+
         console.log("empezo el juego");
+
         io.to(req.session.room).emit("tablero", { personajes });
     });
 
+    
     socket.on("pregunta", (data)=>{
             socket.to(req.session.room).emit("pregunta", {pregunta: data.pregunta});
     })
 });
+
