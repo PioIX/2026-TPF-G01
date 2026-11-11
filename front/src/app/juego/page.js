@@ -15,8 +15,17 @@ export default function JuegoPage() {
     const [paraResponder, setParaResponder] = useState("");
     const [cantPreguntas,setCantpreguntas] = useState(0)
     const [casillaElegida,setCasillaElegida] = useState("")
+    const [visibles,setVisibles] = useState([
+        [true,true,true,true,true,true],
+        [true,true,true,true,true,true],
+        [true,true,true,true,true,true],
+        [true,true,true,true,true,true],
+    ])
 
     const alternar = (i, j) => {
+        if (casillaElegida===""){
+            setCasillaElegida(casillas[i,j])
+        }
     setVisibles((prev) =>
       prev.map((fila, y) =>
         y === i ? fila.map((valor, x) => (x === j ? !valor : valor)) : fila
@@ -99,7 +108,7 @@ export default function JuegoPage() {
                 </Boton>
             </div>
 
-            {casillaElegida!==""? <Tablero casillas={casillas} paraCasillas={alternar}></Tablero>:<Tablero casillas={casillas} paraCasillas={setCasillaElegida}></Tablero>}
+            <Tablero casillas={casillas} casillaElegida={casillaElegida} elegir={setCasillaElegida}></Tablero>
 
             <div id="derecha">
                 <div id="personaje">
