@@ -3,7 +3,7 @@
 import Casilla from "./casilla";
 import { useEffect, useState } from "react";
 
-export default function Tablero({ casillas }) {
+export default function Tablero({ casillas,paraCasillas }) {
 
 
   function dividirEnGrupos(lista) {
@@ -28,13 +28,7 @@ export default function Tablero({ casillas }) {
         [true,true,true,true,true,true],
     ])
     
-  const alternar = (i, j) => {
-  setVisibles((prev) =>
-      prev.map((fila, y) =>
-        y === i ? fila.map((valor, x) => (x === j ? !valor : valor)) : fila
-      )
-    );
-  };
+
 
   return (
     <div
@@ -47,7 +41,7 @@ export default function Tablero({ casillas }) {
             key={`${i}-${j}`}
             casilla={casilla}
             se_ve={visibles[i][j]}
-            onClick={() => alternar(i, j)}
+            onClick={paraCasillas}
           />
         ))
       )}
