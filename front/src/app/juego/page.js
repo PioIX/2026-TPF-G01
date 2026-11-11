@@ -13,6 +13,17 @@ export default function JuegoPage() {
     const [pregunta, setPregunta] = useState("");
     const [chat, setChat] = useState([]);
     const [paraResponder, setParaResponder] = useState("");
+    const [cantPreguntas,setCantpreguntas] = useState(0)
+    const [casillaElegida,setCasillaElegida] = useState("")
+
+    const alternar = (i, j) => {
+    setVisibles((prev) =>
+      prev.map((fila, y) =>
+        y === i ? fila.map((valor, x) => (x === j ? !valor : valor)) : fila
+      )
+    );
+
+  };
 
     useEffect(() => {
         if (!socket) return;
@@ -68,6 +79,7 @@ export default function JuegoPage() {
         socket.emit("pregunta", { pregunta: texto });
         setPregunta("");
         setEstado("");
+        setPregunta(pregunta+1)
     }
 
     function responder(rta) {
@@ -87,7 +99,7 @@ export default function JuegoPage() {
                 </Boton>
             </div>
 
-            <Tablero casillas={casillas}></Tablero>
+            {casillaElegida!==""? <Tablero casillas={casillas} paraCasillas={alternar}></Tablero>:<Tablero casillas={casillas} paraCasillas={setCasillaElegida}></Tablero>}
 
             <div id="derecha">
                 <div id="personaje">
