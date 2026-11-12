@@ -39,6 +39,11 @@ export default function JuegoPage() {
 
         // Código de la sala desde la URL (?room=...)
         const room = new URLSearchParams(window.location.search).get("room");
+        if (new URLSearchParams(window.location.search).get("jugador") == "1") {
+            setEstado("");
+            socket.emit("inicioJuego", { categoria: "futbolistas" })
+
+        }
 
         if (!room) {
             console.log("No se encontro el codigo de la sala");
@@ -102,10 +107,7 @@ export default function JuegoPage() {
             <div id="arrba">
                 <h2 id="sala">sala {sala}</h2>
                 <h1>Adivinalichi</h1>
-                {/* TEMPORAL: solo para pruebas */}
-                <Boton onClick={() => socket.emit("inicioJuego", { categoria: "futbolistas" })}>
-                    empezar
-                </Boton>
+
             </div>
 
             <Tablero casillas={casillas} casillaElegida={casillaElegida} elegir={setCasillaElegida}></Tablero>
