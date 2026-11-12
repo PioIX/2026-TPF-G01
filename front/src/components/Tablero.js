@@ -1,10 +1,15 @@
-"use client"
+"use client";
 
 import Casilla from "./casilla";
 import { useEffect, useState } from "react";
 
-export default function Tablero({ casillas,casillaElegida,elegir }) {
-
+export default function Tablero({ casillas, casillaElegida, elegir }) {
+  const [visibles, setVisibles] = useState([
+    [true, true, true, true, true, true],
+    [true, true, true, true, true, true],
+    [true, true, true, true, true, true],
+    [true, true, true, true, true, true],
+  ]);
 
   function dividirEnGrupos(lista) {
     const resultado = [];
@@ -14,27 +19,14 @@ export default function Tablero({ casillas,casillaElegida,elegir }) {
     return resultado;
   }
 
+  const tablero = dividirEnGrupos(casillas);
 
-  const tablero = dividirEnGrupos(casillas)
-
-
-
-  const columnas = tablero[0]?.length ?? 0;
-
-  const [visibles, setVisibles] = useState([
-    [true, true, true, true, true, true],
-    [true, true, true, true, true, true],
-    [true, true, true, true, true, true],
-    [true, true, true, true, true, true],
-  ])
-
-
+  const alternar = (clave) => {
+    setVisibles((prev) => ({ ...prev, [clave]: prev[clave] === false }));
+  };
 
   return (
-    <div
-      className="tablero"
-      style={{ gridTemplateColumns: `repeat(${columnas}, 1fr)` }}
-    >
+    <div className="tablero" style={{ gridTemplateColumns: `repeat(6, 1fr)` }}>
       {tablero.map((fila, i) =>
         fila.map((casilla, j) => {
           const clave = `${i}-${j}`;
@@ -44,7 +36,7 @@ export default function Tablero({ casillas,casillaElegida,elegir }) {
               casilla={casilla}
               se_ve={visibles[clave] !== false}
               onClick={() => {
-                if (casillaElegida === null) onElegirCasilla(casilla);
+                if (casillaElegida === "") elegir(casilla);
                 else alternar(clave);
               }}
             />
@@ -52,6 +44,5 @@ export default function Tablero({ casillas,casillaElegida,elegir }) {
         })
       )}
     </div>
-
   );
 }
