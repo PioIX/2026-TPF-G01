@@ -15,7 +15,6 @@ export default function PartidasPage() {
     const [miCodigo, setMiCodigo] = useState("");
     const [mensaje, setMensaje] = useState("");
     const [conectado, setConectado] = useState(false);
-    const [jugador,setJugador] = useState(0);
     useEffect(() => {
 
         if (!socket) return;
@@ -36,7 +35,7 @@ export default function PartidasPage() {
         const partidaLista = (data) => {
             setMensaje("¡Partida encontrada!");
 
-            router.push("/juego?room=" + data.room+"&jugador="+jugador);
+            router.push("/juego?room=" + data.room);
         };
 
         const errorSala = (mensaje) => {
@@ -94,12 +93,13 @@ export default function PartidasPage() {
             setMensaje("Ingresá un código");
             return;
         }
+        
 
         setMensaje("Buscando sala...");
         socket.emit("joinRoom", {
             room: codigo.trim().toUpperCase()
         });
-        setJugador(1);
+        
     };
 
 

@@ -168,7 +168,9 @@ io.on("connection", (socket) => {
             io.to(codigo).emit("partidaLista", { room: codigo });
         }
     });
-
+    socket.on("casillaElegida",()=>{
+        
+    });
 
     // INICIAR JUEGO
     socket.on("inicioJuego", async (data) => {

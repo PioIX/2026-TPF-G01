@@ -15,17 +15,15 @@ export default function JuegoPage() {
   const [paraResponder, setParaResponder] = useState("");
   const [cantPreguntas, setCantpreguntas] = useState(0);
   const [casillaElegida, setCasillaElegida] = useState("");
-  const [eligioCasilla, setEligioCasilla] = useState(false);
 
+
+  
   useEffect(() => {
     if (!socket) return;
 
     // Código de la sala desde la URL (?room=...)
     const room = new URLSearchParams(window.location.search).get("room");
-    if (new URLSearchParams(window.location.search).get("jugador") == "1") {
-      setEstado("");
-      socket.emit("inicioJuego", { categoria: "futbolistas" });
-    }
+
 
     if (!room) {
       console.log("No se encontro el codigo de la sala");
@@ -50,12 +48,7 @@ export default function JuegoPage() {
       setParaResponder(data.pregunta);
       setEstado("responder");
     };
-    const onCasillaElegida = (data) => {
-      setEligioCasilla(true);
-      if (casillaElegida != "") {
-        socket.emit("casillas elegidas");
-      }
-    };
+
 
     socket.on("connect", unirse); // vuelve a unirse si el socket se reconecta
     socket.on("tablero", onTablero);
@@ -70,12 +63,17 @@ export default function JuegoPage() {
     };
   }, [socket]);
 
+  useEffect(()=>{
+    if (!socket) return;
+    socket.emit("inicioJuego", { categoria: "futbolistas" });
+  },[])
+
   const elegirCasilla = (casilla) => {
     setCasillaElegida(casilla);
     setEstado("");
-    if (!eligioCasilla) {
-      socket.emit("casillaElegida", {});
-    }
+
+    socket.emit("casillaElegida", {});
+
   };
 
   function actpregunta(event) {
