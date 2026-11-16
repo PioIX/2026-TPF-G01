@@ -8,36 +8,37 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const crypto = require("crypto");
 const turnos = new Map();
+const salas = {}
 
 app.use(express.json());
-app.use(express.urlencoded({extended:false}));
+app.use(express.urlencoded({ extended: false }));
 app.use(cors({
     origin: ["http://localhost:3000", "http://localhost:3001"],
     credentials: true
 }));
 
 const server = app.listen(PORT, () => {
-console.log(`Servidor NodeJS corriendo en http://localhost:${PORT}/`);
+    console.log(`Servidor NodeJS corriendo en http://localhost:${PORT}/`);
 });
 
 const io = new Server(server, {
-  cors: {
-    origin: ["http://localhost:3000", "http://localhost:3001"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  },
+    cors: {
+        origin: ["http://localhost:3000", "http://localhost:3001"],
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        credentials: true,
+    },
 });
 
 
 const sessionMiddleware = session({
-  secret: "supersarasa",
-  resave: false,
-  saveUninitialized: false,
+    secret: "supersarasa",
+    resave: false,
+    saveUninitialized: false,
 });
 app.use(sessionMiddleware);
 
 io.use((socket, next) => {
-  sessionMiddleware(socket.request, {}, next);
+    sessionMiddleware(socket.request, {}, next);
 });
 
 app.get('/', function (req, res) {
@@ -50,7 +51,7 @@ app.get('/', function (req, res) {
 //Agarrar usuarios de la base de datos
 app.get('/usuarios', async function (req, res) {
     try {
- 
+
         let respuesta = await realizarQuery(`SELECT * FROM Usuarios`);
         res.send(respuesta);
     }
@@ -71,7 +72,7 @@ app.post('/usuarios', async function (req, res) {
 
         } else {
             await realizarQuery(`INSERT INTO Usuarios (nombre_usuario,mail,contrasena, es_admin) VALUES ("${req.body.nombre_usuario}","${req.body.mail}","${req.body.contrasena}", false);`)
-            res.send({message:"usuario agregado"})
+            res.send({ message: "usuario agregado" })
         }
 
     } catch (error) {
@@ -130,7 +131,7 @@ io.on("connection", (socket) => {
 
 
     // UNIRSE A UNA SALA
-    socket.on("joinRoom", (data) => {
+ socket.on("joinRoom", (data) => {
         const codigo = data.room.toUpperCase();
         const sala = io.sockets.adapter.rooms.get(codigo);
 
@@ -153,45 +154,59 @@ io.on("connection", (socket) => {
         req.session.room = codigo;
         socket.join(codigo);
 
+        // estado de la partida (se crea una sola vez por sala)
+        salas[codigo] ??= { tablero: null, elegidas: new Set() };
+
+        // si el tablero ya existe (entré tarde o recargué), mandárselo solo a este socket
+        if (salas[codigo].tablero) {
+            socket.emit("tablero", { personajes: salas[codigo].tablero });
+        }
+
         console.log("Jugador unido a:", codigo);
 
-        io.to(codigo).emit("chat-messages", {
-            user: req.session.user,
-            room: codigo
-        });
-
         const jugadores = io.sockets.adapter.rooms.get(codigo).size;
-
         console.log("Jugadores en la sala:", jugadores);
 
         if (jugadores == 2 && !yaEsta) {
             io.to(codigo).emit("partidaLista", { room: codigo });
         }
     });
-    socket.on("casillaElegida",()=>{
-        
-    });
+
+socket.on("casillaElegida", () => {
+    const codigo = req.session.room;
+    const sala = salas[codigo];
+    if (!sala) return;
+
+    sala.elegidas.add(socket.id);
+    console.log("sala:", codigo, "elegidas:", sala.elegidas.size);
+
+    if (sala.elegidas.size === 2) {
+        const [primero, segundo] = [...sala.elegidas]; // ids de los dos sockets
+
+        io.to(primero).emit("empezar", { turno: true });   // pregunta
+        io.to(segundo).emit("empezar", { turno: false });  // espera
+    }
+});
 
     // INICIAR JUEGO
-    socket.on("inicioJuego", async (data) => {
-        async function obtenerPersonajes(categoria) {
+    socket.on("inicioJuego", async ({categoria}) => {
+        async function generarTablero(categoria) {
             return await realizarQuery(`SELECT nombre_casilla, img FROM Personajes WHERE tabla="${categoria}" ORDER BY RAND() LIMIT 24`);
         }
 
-        const personajes = await obtenerPersonajes(data.categoria);
+        const codigo = req.session.room;
+        const sala = salas[codigo];
+        if (!sala || sala.tablero) return; // candado: ya se generó
 
-        console.log("empezo el juego");
-
-        io.to(req.session.room).emit("tablero", { personajes });
+        sala.tablero = await generarTablero(categoria);
+        io.to(codigo).emit("tablero", { personajes: sala.tablero });
     });
 
-    
-    socket.on("pregunta", (data)=>{
-            socket.to(req.session.room).emit("pregunta", {pregunta: data.pregunta});
+
+    socket.on("pregunta", (data) => {
+        socket.to(req.session.room).emit("pregunta", { pregunta: data.pregunta });
     })
 
-    socket.on("casillaElegida",(data)=>{
-        socket.to(req.session.room).emit("casillaElegida",{})
-    })
+
 });
 

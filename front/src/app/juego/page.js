@@ -17,7 +17,8 @@ export default function JuegoPage() {
   const [casillaElegida, setCasillaElegida] = useState("");
 
 
-  
+
+
   useEffect(() => {
     if (!socket) return;
 
@@ -32,9 +33,10 @@ export default function JuegoPage() {
 
     setSala(room);
 
+
     const unirse = () => {
-      console.log("Entrando a la sala:", room);
       socket.emit("joinRoom", { room });
+      socket.emit("inicioJuego", { categoria: "futbolistas" });
     };
 
     const onTablero = (data) => {
@@ -49,10 +51,14 @@ export default function JuegoPage() {
       setEstado("responder");
     };
 
+    const onEmpezar = (data) => {
+      setEstado(data.turno ? "preguntar" : "esperar");
+    };
 
     socket.on("connect", unirse); // vuelve a unirse si el socket se reconecta
     socket.on("tablero", onTablero);
     socket.on("pregunta", onPregunta);
+    socket.on("empezar", onEmpezar);
 
     if (socket.connected) unirse();
 
@@ -60,13 +66,10 @@ export default function JuegoPage() {
       socket.off("connect", unirse);
       socket.off("tablero", onTablero);
       socket.off("pregunta", onPregunta);
+      socket.off("empezar", onEmpezar);
     };
   }, [socket]);
 
-  useEffect(()=>{
-    if (!socket) return;
-    socket.emit("inicioJuego", { categoria: "futbolistas" });
-  },[])
 
   const elegirCasilla = (casilla) => {
     setCasillaElegida(casilla);
@@ -84,6 +87,8 @@ export default function JuegoPage() {
     const texto = pregunta.trim();
     if (texto.length === 0 || texto.length > 120) return;
 
+       setChat((prev) => [...prev, texto]);
+
     socket.emit("pregunta", { pregunta: texto });
     setPregunta("");
     setEstado("");
@@ -92,7 +97,7 @@ export default function JuegoPage() {
 
   function responder(rta) {
     setChat((prev) => [...prev, { pregunta: paraResponder, respuesta: rta }]);
-    socket.emit("respuesta", { respuesta: rta });
+    socket.emit("respuesta", { pregunta: paraResponder, respuesta: rta });
     setEstado("");
   }
 
@@ -159,6 +164,7 @@ export default function JuegoPage() {
             </div>
           </div>
         )}
+        {estado === "esperar" && <h2>Esperando al otro jugador...</h2>}
       </div>
     </div>
   );
