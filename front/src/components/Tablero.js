@@ -3,7 +3,7 @@
 import Casilla from "./casilla";
 import { useEffect, useState } from "react";
 
-export default function Tablero({ casillas, casillaElegida, elegir }) {
+export default function Tablero({ casillas, casillaElegida, elegir,adivinar }) {
   const [visibles, setVisibles] = useState([
     [true, true, true, true, true, true],
     [true, true, true, true, true, true],
@@ -26,6 +26,7 @@ export default function Tablero({ casillas, casillaElegida, elegir }) {
   };
 
   return (
+    <>
     <div className="tablero" style={{ gridTemplateColumns: `repeat(6, 1fr)` }}>
       {tablero.map((fila, i) =>
         fila.map((casilla, j) => {
@@ -36,7 +37,7 @@ export default function Tablero({ casillas, casillaElegida, elegir }) {
               casilla={casilla}
               se_ve={visibles[clave] !== false}
               onClick={() => {
-                if (casillaElegida === "") elegir(casilla);
+                if (casillaElegida === "" || adivinar) elegir(casilla);
                 else alternar(clave);
               }}
             />
@@ -44,5 +45,6 @@ export default function Tablero({ casillas, casillaElegida, elegir }) {
         })
       )}
     </div>
+    </>
   );
 }

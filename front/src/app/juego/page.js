@@ -13,7 +13,7 @@ export default function JuegoPage() {
   const [pregunta, setPregunta] = useState("");
   const [chat, setChat] = useState([]);
   const [paraResponder, setParaResponder] = useState("");
-  const [cantPreguntas, setCantpreguntas] = useState(0);
+  const [cantPreguntas, setCantPreguntas] = useState(0);
   const [casillaElegida, setCasillaElegida] = useState("");
 
 
@@ -55,10 +55,38 @@ export default function JuegoPage() {
       setEstado(data.turno ? "preguntar" : "esperar");
     };
 
+    const onDescartado = (data) => {
+      setEstado("preguntar")
+    }
+
+    const onRespuesta = (data) => {
+      console.log("respuesta recibida");
+      setChat((prev) => [...prev.slice(0, -1), data]);
+      setEstado("descartar")
+    }
+
+    const onCasillaAdivinada= (data)=>{
+      if (data.casilla==casillaElegida){
+        socket.emit("resultadoFinal",{result:true});
+        setChat((prev) => [prev, {pregunta:"has perdido la partida"}]);
+      }else{
+        socket.emit("resultadoFinal",{result:false})
+        setChat((prev) => [prev, {pregunta:"has ganado la partida"}]);
+      }
+    }
+
+    const onResultadoFinal= (data)=>{
+      setChat((prev)=>[prev, data.result ?{pregunta:"has ganado la partida"}:{pregunta:"has perdido la partida"} ])
+    }
+
     socket.on("connect", unirse); // vuelve a unirse si el socket se reconecta
     socket.on("tablero", onTablero);
     socket.on("pregunta", onPregunta);
     socket.on("empezar", onEmpezar);
+    socket.on("respuesta", onRespuesta);
+    socket.on("descartado", onDescartado)
+    socket.on("casillaAdivinada", onCasillaAdivinada);
+    socket.on("resultadoFinal",onResultadoFinal)
 
     if (socket.connected) unirse();
 
@@ -67,15 +95,23 @@ export default function JuegoPage() {
       socket.off("tablero", onTablero);
       socket.off("pregunta", onPregunta);
       socket.off("empezar", onEmpezar);
+      socket.off("respuesta", onRespuesta);
+      socket.off("descartado", onDescartado)
+      socket.off("casillaAdivinada", onCasillaAdivinada);
+      socket.off("resultadoFinal",onResultadoFinal)
     };
   }, [socket]);
 
 
   const elegirCasilla = (casilla) => {
+    if (estado == "adivinar") {
+      socket.emit("casillaAdivinada", { casilla: casilla })
+    } else{
     setCasillaElegida(casilla);
     setEstado("");
 
     socket.emit("casillaElegida", {});
+    }
 
   };
 
@@ -87,33 +123,45 @@ export default function JuegoPage() {
     const texto = pregunta.trim();
     if (texto.length === 0 || texto.length > 120) return;
 
-       setChat((prev) => [...prev, texto]);
+    setChat((prev) => [...prev, { pregunta: texto }]);
 
     socket.emit("pregunta", { pregunta: texto });
+
     setPregunta("");
     setEstado("");
-    setPregunta(pregunta + 1);
+    setCantPreguntas(cantPreguntas + 1);
   }
 
   function responder(rta) {
-    setChat((prev) => [...prev, { pregunta: paraResponder, respuesta: rta }]);
+    setChat((prev) => [...prev.slice(0, -1), { pregunta: paraResponder, respuesta: rta }]);
     socket.emit("respuesta", { pregunta: paraResponder, respuesta: rta });
     setEstado("");
+  }
+
+  function terminarDescartar() {
+    setEstado("esperar")
+    socket.emit("descartado")
   }
 
   return (
     <div id="juego">
       <div id="arrba">
-        <h2 id="sala">sala {sala}</h2>
+        <h2 id="cantPreguntas">cantidad de preguntas {cantPreguntas}</h2>
         <h1>Adivinalichi</h1>
-        <Boton
+
+        {(estado === "preguntar" || estado==="adivinar") && 
+        <Boton id="adivinar" 
           onClick={() => {
-            socket.emit("inicioJuego", { categoria: "futbolistas" });
+            if(estado==="adivinar"){
+              setEstado("preguntar");
+              return
+            }
+            setEstado("adivinar")
           }}
         >
-          {" "}
-          empezar
-        </Boton>
+          Adivinar
+        </Boton>}
+
       </div>
 
       {/*EL TABLERO */}
@@ -121,6 +169,7 @@ export default function JuegoPage() {
         casillas={casillas}
         casillaElegida={casillaElegida}
         elegir={elegirCasilla}
+        adivinar={estado=="adivinar"}
       ></Tablero>
 
       <div id="derecha">
@@ -138,6 +187,8 @@ export default function JuegoPage() {
             </p>
           ))}
         </div>
+
+
 
         {estado === "preguntar" && (
           <div id="pregunta">
@@ -165,6 +216,13 @@ export default function JuegoPage() {
           </div>
         )}
         {estado === "esperar" && <h2>Esperando al otro jugador...</h2>}
+        {estado === "descartar" && (
+          <>
+            <h3>Descarta casillas</h3>
+            <Boton onClick={() => terminarDescartar()}>Listo</Boton>
+
+          </>
+        )}
       </div>
     </div>
   );

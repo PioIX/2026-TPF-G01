@@ -207,6 +207,22 @@ socket.on("casillaElegida", () => {
         socket.to(req.session.room).emit("pregunta", { pregunta: data.pregunta });
     })
 
+    socket.on("respuesta", (data) => {
+        socket.to(req.session.room).emit("respuesta", data);
+    })
+
+    socket.on("descartado", (data) => {
+        socket.to(req.session.room).emit("descartado", data);
+    })
+
+    socket.on("casillaAdivinada",(data)=>{
+        socket.to(req.session.room).emit("casillaAdivinada", data);
+    })
+
+    socket.on("resultadoFinal",(data)=>{
+        socket.to(req.session.room).emit("resultadoFinal", data);
+    })
+
 
 });
 
