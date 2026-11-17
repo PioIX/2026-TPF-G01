@@ -15,7 +15,6 @@ export default function PartidasPage() {
     const [miCodigo, setMiCodigo] = useState("");
     const [mensaje, setMensaje] = useState("");
     const [conectado, setConectado] = useState(false);
-
     useEffect(() => {
 
         if (!socket) return;
@@ -94,13 +93,13 @@ export default function PartidasPage() {
             setMensaje("Ingresá un código");
             return;
         }
+        
 
         setMensaje("Buscando sala...");
-
         socket.emit("joinRoom", {
             room: codigo.trim().toUpperCase()
         });
-
+        
     };
 
 

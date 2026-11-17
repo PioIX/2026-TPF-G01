@@ -1,13 +1,15 @@
+import styles from "@/app/juego/page.module.css";
+
 export default function Casilla({ casilla, se_ve, onClick }) {
   return (
-    <div className="casilla" onClick={onClick}>
-      <div className={`casilla-inner ${se_ve ? "" : "volteada"}`}>
-        <div className="cara frente">
+    <div className={styles.casilla} onClick={onClick}>
+      <div className={`${styles.casillaInner} ${se_ve ? "" : styles.volteada}`}>
+        <div className={`${styles.cara} ${styles.frente}`}>
           <img src={casilla?.img} alt={casilla?.nombre_casilla ?? ""} />
           <p>{casilla?.nombre_casilla}</p>
         </div>
 
-        <div className="cara reverso">
+        <div className={`${styles.cara} ${styles.reverso}`}>
           <img src="/reverso_casilla.png" alt="reverso" />
         </div>
       </div>
