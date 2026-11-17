@@ -1,33 +1,31 @@
 "use client";
 
+import { useState } from "react";
 import Casilla from "./casilla";
-import { useEffect, useState } from "react";
+import styles from "@/app/juego/page.module.css";
 
-export default function Tablero({ casillas, casillaElegida, elegir,adivinar }) {
-  const [visibles, setVisibles] = useState([
-    [true, true, true, true, true, true],
-    [true, true, true, true, true, true],
-    [true, true, true, true, true, true],
-    [true, true, true, true, true, true],
-  ]);
+const COLUMNAS = 6;
 
-  function dividirEnGrupos(lista) {
-    const resultado = [];
-    for (let i = 0; i < lista.length; i += 6) {
-      resultado.push(lista.slice(i, i + 6));
-    }
-    return resultado;
+function dividirEnGrupos(lista, tamano) {
+  const resultado = [];
+  for (let i = 0; i < lista.length; i += tamano) {
+    resultado.push(lista.slice(i, i + tamano));
   }
+  return resultado;
+}
 
-  const tablero = dividirEnGrupos(casillas);
+export default function Tablero({ casillas, casillaElegida, elegir, adivinar }) {
+  // { "fila-columna": false } -> casilla descartada (dada vuelta)
+  const [visibles, setVisibles] = useState({});
+
+  const tablero = dividirEnGrupos(casillas, COLUMNAS);
 
   const alternar = (clave) => {
     setVisibles((prev) => ({ ...prev, [clave]: prev[clave] === false }));
   };
 
   return (
-    <>
-    <div className="tablero" style={{ gridTemplateColumns: `repeat(6, 1fr)` }}>
+    <div className={`${styles.tablero} ${adivinar ? styles.adivinando : ""}`}>
       {tablero.map((fila, i) =>
         fila.map((casilla, j) => {
           const clave = `${i}-${j}`;
@@ -37,7 +35,8 @@ export default function Tablero({ casillas, casillaElegida, elegir,adivinar }) {
               casilla={casilla}
               se_ve={visibles[clave] !== false}
               onClick={() => {
-                if (casillaElegida === "" || adivinar) elegir(casilla);
+                // sin casilla elegida, o adivinando: el click elige
+                if (!casillaElegida || adivinar) elegir(casilla);
                 else alternar(clave);
               }}
             />
@@ -45,6 +44,5 @@ export default function Tablero({ casillas, casillaElegida, elegir,adivinar }) {
         })
       )}
     </div>
-    </>
   );
 }

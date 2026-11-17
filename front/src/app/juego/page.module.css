@@ -1,0 +1,598 @@
+/* ======================================================
+   LAYOUT GENERAL
+   ====================================================== */
+
+.juego {
+  /* alto que ocupan el padding y el encabezado: el tablero usa el resto */
+  --reservado: 104px;
+
+  flex: 1;
+  display: grid;
+  /* el tablero nunca es más alto que la ventana (6x4 casillas ≈ 0.78 de alto/ancho) */
+  grid-template-columns:
+    minmax(0, calc((100dvh - var(--reservado)) * 1.28))
+    minmax(240px, 340px);
+  justify-content: center;
+  align-items: start;
+  gap: 16px;
+  width: 100%;
+  padding: 16px;
+  background: var(--azul-fondo);
+  color: #ffffff;
+}
+
+/* ======================================================
+   ENCABEZADO (fila superior)
+   ====================================================== */
+
+.arriba {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+}
+
+.contador {
+  justify-self: start;
+  font-size: 1rem;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.arriba h1 {
+  text-align: center;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  line-height: 1.1;
+}
+
+/* Botón ADIVINAR */
+.arriba button {
+  justify-self: end;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #3a2a00;
+  background: linear-gradient(180deg, #ffe066 0%, #f5a300 100%);
+  box-shadow: 0 5px 0 #b57400, 0 8px 12px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s, filter 0.15s;
+}
+
+.arriba button:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.arriba button:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #b57400, 0 3px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* ======================================================
+   TABLERO
+   ====================================================== */
+
+.tablero {
+  /* permite que el texto de las casillas escale con el ancho del tablero */
+  container-type: inline-size;
+
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  align-content: start;
+  gap: clamp(4px, 0.7vw, 10px);
+  width: 100%;
+  padding: clamp(6px, 0.9vw, 12px);
+  background: var(--azul-panel);
+  border: 2px solid var(--azul-borde);
+  border-radius: 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Modo adivinar: el tablero se resalta */
+.adivinando {
+  border-color: var(--dorado);
+  box-shadow: 0 0 0 3px rgba(255, 210, 63, 0.35),
+    0 0 24px rgba(255, 210, 63, 0.35);
+}
+
+.adivinando .casilla:hover {
+  transform: scale(1.05);
+}
+
+/* ======================================================
+   CASILLAS
+   ====================================================== */
+
+/* Proporción fija: las fotos no se deforman */
+.casilla {
+  aspect-ratio: 7 / 8;
+  min-width: 0;
+  perspective: 800px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s;
+}
+
+.casilla:hover {
+  transform: translateY(-2px);
+}
+
+/* Lo que rota */
+.casillaInner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease;
+}
+
+.volteada {
+  transform: rotateY(180deg);
+}
+
+.cara {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 10px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Frente */
+.frente {
+  padding: clamp(2px, 0.5cqw, 5px);
+  gap: clamp(2px, 0.5cqw, 5px);
+  background: var(--azul-carta);
+  border: 2px solid var(--azul-borde);
+}
+
+.frente img {
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  object-fit: cover;
+  object-position: top center; /* prioriza la cara */
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Nombre: se parte en hasta 2-3 líneas, ya no se corta con "..." */
+.frente p {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.2em;
+  max-height: 3.4em;
+  overflow: hidden;
+  font-size: 0.75rem; /* respaldo para navegadores sin cqw */
+  font-size: clamp(0.58rem, 1.9cqw, 0.95rem);
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  color: #ffffff;
+}
+
+/* Reverso: ya viene girado 180°, queda oculto hasta que el contenedor rota */
+.reverso {
+  background: var(--azul-carta);
+  border: 2px solid var(--azul-borde);
+  transform: rotateY(180deg);
+}
+
+.reverso img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* ======================================================
+   PANEL DERECHO
+   ====================================================== */
+
+.derecha {
+  position: sticky;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  /* misma altura que el tablero */
+  height: calc(100dvh - var(--reservado));
+  min-height: 380px;
+}
+
+/* Base común de los paneles */
+.personaje,
+.chat,
+.pregunta,
+.respuesta,
+.aviso {
+  background: var(--azul-panel);
+  border: 2px solid var(--azul-borde);
+  border-radius: 12px;
+}
+
+/* ---------- Personaje elegido ---------- */
+
+.personaje {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+}
+
+.personaje img,
+.placeholder {
+  width: clamp(70px, 8vh, 110px);
+  aspect-ratio: 1;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 10px;
+  border: 2px solid var(--azul-borde);
+}
+
+.placeholder {
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--azul-borde);
+  background: var(--azul-carta);
+  border-style: dashed;
+}
+
+.personaje p {
+  font-weight: 700;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* ======================================================
+   CHAT
+   ====================================================== */
+
+.chat {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  overflow-y: auto;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+  scrollbar-width: thin;
+  scrollbar-color: var(--azul-borde) transparent;
+}
+
+.chat:empty::before {
+  content: "Acá van a aparecer las preguntas";
+  margin: auto;
+  text-align: center;
+  opacity: 0.5;
+}
+
+.mensaje {
+  max-width: 85%;
+  padding: 8px 12px;
+  border-radius: 14px;
+  line-height: 1.3;
+  background: var(--azul-carta);
+  border: 1px solid var(--azul-borde);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+  animation: aparecer 0.2s ease-out;
+}
+
+/* Pregunta que hice yo: izquierda */
+.propia {
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+/* Pregunta del otro jugador: derecha */
+.ajena {
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+
+/* Todavía sin respuesta */
+.pendiente {
+  border-style: dashed;
+  opacity: 0.85;
+}
+
+/* Colores según la respuesta */
+.si {
+  background: linear-gradient(180deg, #2fbf43 0%, #1d8f2e 100%);
+  border-color: #4be25d;
+}
+
+.no {
+  background: linear-gradient(180deg, #e8434f 0%, #b92632 100%);
+  border-color: #ff5c68;
+}
+
+.etiqueta {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Mensajes del sistema (ganaste / perdiste) */
+.sistema {
+  align-self: center;
+  max-width: 100%;
+  padding: 8px 18px;
+  border-radius: 999px;
+  text-align: center;
+  font-weight: 800;
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ======================================================
+   PREGUNTA (input + enviar)
+   ====================================================== */
+
+.pregunta {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+}
+
+.pregunta input {
+  flex: 1 1 140px;
+  min-width: 0;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 20px;
+  outline: none;
+  font-size: 14px;
+}
+
+.pregunta input:focus {
+  box-shadow: 0 0 0 3px rgba(31, 162, 255, 0.5);
+}
+
+.pregunta button {
+  flex-shrink: 0;
+  min-width: 42px;
+  height: 42px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 21px;
+  background: var(--celeste);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pregunta button:hover {
+  filter: brightness(1.15);
+}
+
+.pregunta p {
+  width: 100%;
+  font-size: 12px;
+  color: #ffb3b8;
+}
+
+/* ======================================================
+   RESPUESTA (SÍ / NO)
+   ====================================================== */
+
+.respuesta {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 12px 18px;
+  overflow: hidden;
+}
+
+.respuesta h3 {
+  width: 100%;
+  max-height: 120px;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.botones {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.botones button {
+  flex: 1;
+  max-width: 130px;
+  height: 46px;
+  border: none;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s, filter 0.15s;
+}
+
+.botones button:first-child {
+  background: linear-gradient(180deg, #4be25d 0%, #22a834 100%);
+  box-shadow: 0 5px 0 #168024, 0 8px 12px rgba(0, 0, 0, 0.35);
+}
+
+.botones button:last-child {
+  background: linear-gradient(180deg, #ff5c68 0%, #d32f3c 100%);
+  box-shadow: 0 5px 0 #9c1f2a, 0 8px 12px rgba(0, 0, 0, 0.35);
+}
+
+.botones button:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.botones button:active {
+  transform: translateY(4px);
+}
+
+.botones button:first-child:active {
+  box-shadow: 0 1px 0 #168024, 0 3px 6px rgba(0, 0, 0, 0.35);
+}
+
+.botones button:last-child:active {
+  box-shadow: 0 1px 0 #9c1f2a, 0 3px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* ======================================================
+   AVISOS (elegir / esperar / descartar)
+   ====================================================== */
+
+.aviso {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  text-align: center;
+}
+
+.aviso h2,
+.aviso h3 {
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.aviso button {
+  padding: 10px 28px;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #ffffff;
+  background: linear-gradient(180deg, #4be25d 0%, #22a834 100%);
+  box-shadow: 0 5px 0 #168024, 0 8px 12px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s, filter 0.15s;
+}
+
+.aviso button:hover {
+  filter: brightness(1.1);
+}
+
+.aviso button:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #168024, 0 3px 6px rgba(0, 0, 0, 0.35);
+}
+
+.esperando {
+  animation: pulso 1.6s ease-in-out infinite;
+}
+
+@keyframes pulso {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* ======================================================
+   RESPONSIVE (mobile: una sola columna)
+   ====================================================== */
+
+@media (max-width: 760px) {
+  .juego {
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  /* Título arriba, contador y botón en la fila de abajo */
+  .arriba {
+    grid-template-columns: 1fr auto;
+    gap: 8px 12px;
+  }
+
+  .arriba h1 {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  /* En horizontal (poca altura) el tablero también tiene que entrar entero */
+  .tablero {
+    max-width: calc((100dvh - 150px) * 1.28);
+    justify-self: center;
+  }
+
+  .derecha {
+    position: static;
+    height: auto;
+    min-height: 0;
+    gap: 10px;
+  }
+
+  /* La acción (preguntar / responder) queda justo debajo del tablero */
+  .pregunta,
+  .respuesta,
+  .aviso {
+    order: -1;
+  }
+
+  .chat {
+    flex: none;
+    min-height: 180px;
+    max-height: 40vh;
+  }
+
+  /* Personaje compacto en una fila */
+  .personaje {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 8px 12px;
+  }
+
+  .personaje img,
+  .placeholder {
+    width: 56px;
+  }
+}

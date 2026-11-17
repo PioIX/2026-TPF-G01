@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Boton from "@/components/Boton";
 import Tablero from "@/components/Tablero";
 import useSocket from "@/app/hooks/useSocket";
+import styles from "./page.module.css";
 
 export default function JuegoPage() {
   const { socket } = useSocket();
@@ -16,8 +17,17 @@ export default function JuegoPage() {
   const [cantPreguntas, setCantPreguntas] = useState(0);
   const [casillaElegida, setCasillaElegida] = useState("");
 
+  // ref para que los listeners del socket vean siempre la casilla actual
+  const casillaRef = useRef("");
+  const chatRef = useRef(null);
 
-
+  // Baja el chat hasta el último mensaje
+  useEffect(() => {
+    chatRef.current?.scrollTo({
+      top: chatRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [chat]);
 
   useEffect(() => {
     if (!socket) return;
@@ -25,14 +35,12 @@ export default function JuegoPage() {
     // Código de la sala desde la URL (?room=...)
     const room = new URLSearchParams(window.location.search).get("room");
 
-
     if (!room) {
       console.log("No se encontro el codigo de la sala");
       return;
     }
 
     setSala(room);
-
 
     const unirse = () => {
       socket.emit("joinRoom", { room });
@@ -44,9 +52,10 @@ export default function JuegoPage() {
       setCasillas(data.personajes);
     };
 
+    // El otro jugador me hizo una pregunta
     const onPregunta = (data) => {
       console.log("pregunta recibida");
-      setChat((prev) => [...prev, data]);
+      setChat((prev) => [...prev, { ...data, propia: false }]);
       setParaResponder(data.pregunta);
       setEstado("responder");
     };
@@ -55,38 +64,61 @@ export default function JuegoPage() {
       setEstado(data.turno ? "preguntar" : "esperar");
     };
 
-    const onDescartado = (data) => {
-      setEstado("preguntar")
-    }
+    const onDescartado = () => {
+      setEstado("preguntar");
+    };
 
+    // Me respondieron mi pregunta: se completa el último mensaje del chat
     const onRespuesta = (data) => {
       console.log("respuesta recibida");
-      setChat((prev) => [...prev.slice(0, -1), data]);
-      setEstado("descartar")
-    }
+      setChat((prev) => [
+        ...prev.slice(0, -1),
+        { ...prev[prev.length - 1], ...data, propia: true },
+      ]);
+      setEstado("descartar");
+    };
 
-    const onCasillaAdivinada= (data)=>{
-      if (data.casilla==casillaElegida){
-        socket.emit("resultadoFinal",{result:true});
-        setChat((prev) => [prev, {pregunta:"has perdido la partida"}]);
-      }else{
-        socket.emit("resultadoFinal",{result:false})
-        setChat((prev) => [prev, {pregunta:"has ganado la partida"}]);
-      }
-    }
+    // El otro jugador intentó adivinar mi personaje
+    const onCasillaAdivinada = (data) => {
+      const acerto =
+        data.casilla.nombre_casilla === casillaRef.current.nombre_casilla;
 
-    const onResultadoFinal= (data)=>{
-      setChat((prev)=>[prev, data.result ?{pregunta:"has ganado la partida"}:{pregunta:"has perdido la partida"} ])
-    }
+      socket.emit("resultadoFinal", { result: acerto });
+
+      setChat((prev) => [
+        ...prev,
+        {
+          sistema: true,
+          gano: !acerto,
+          pregunta: acerto ? "has perdido la partida" : "has ganado la partida",
+        },
+      ]);
+      setEstado("fin");
+    };
+
+    // Resultado de mi intento de adivinar
+    const onResultadoFinal = (data) => {
+      setChat((prev) => [
+        ...prev,
+        {
+          sistema: true,
+          gano: data.result,
+          pregunta: data.result
+            ? "has ganado la partida"
+            : "has perdido la partida",
+        },
+      ]);
+      setEstado("fin");
+    };
 
     socket.on("connect", unirse); // vuelve a unirse si el socket se reconecta
     socket.on("tablero", onTablero);
     socket.on("pregunta", onPregunta);
     socket.on("empezar", onEmpezar);
     socket.on("respuesta", onRespuesta);
-    socket.on("descartado", onDescartado)
+    socket.on("descartado", onDescartado);
     socket.on("casillaAdivinada", onCasillaAdivinada);
-    socket.on("resultadoFinal",onResultadoFinal)
+    socket.on("resultadoFinal", onResultadoFinal);
 
     if (socket.connected) unirse();
 
@@ -96,23 +128,21 @@ export default function JuegoPage() {
       socket.off("pregunta", onPregunta);
       socket.off("empezar", onEmpezar);
       socket.off("respuesta", onRespuesta);
-      socket.off("descartado", onDescartado)
+      socket.off("descartado", onDescartado);
       socket.off("casillaAdivinada", onCasillaAdivinada);
-      socket.off("resultadoFinal",onResultadoFinal)
+      socket.off("resultadoFinal", onResultadoFinal);
     };
   }, [socket]);
 
-
   const elegirCasilla = (casilla) => {
-    if (estado == "adivinar") {
-      socket.emit("casillaAdivinada", { casilla: casilla })
-    } else{
-    setCasillaElegida(casilla);
-    setEstado("");
-
-    socket.emit("casillaElegida", {});
+    if (estado === "adivinar") {
+      socket.emit("casillaAdivinada", { casilla });
+    } else {
+      setCasillaElegida(casilla);
+      casillaRef.current = casilla;
+      setEstado("esperar");
+      socket.emit("casillaElegida", {});
     }
-
   };
 
   function actpregunta(event) {
@@ -123,105 +153,131 @@ export default function JuegoPage() {
     const texto = pregunta.trim();
     if (texto.length === 0 || texto.length > 120) return;
 
-    setChat((prev) => [...prev, { pregunta: texto }]);
-
+    setChat((prev) => [...prev, { pregunta: texto, propia: true }]);
     socket.emit("pregunta", { pregunta: texto });
 
     setPregunta("");
-    setEstado("");
-    setCantPreguntas(cantPreguntas + 1);
+    setEstado("esperar");
+    setCantPreguntas((prev) => prev + 1);
   }
 
   function responder(rta) {
-    setChat((prev) => [...prev.slice(0, -1), { pregunta: paraResponder, respuesta: rta }]);
+    setChat((prev) => [
+      ...prev.slice(0, -1),
+      { pregunta: paraResponder, respuesta: rta, propia: false },
+    ]);
     socket.emit("respuesta", { pregunta: paraResponder, respuesta: rta });
-    setEstado("");
+    setEstado("esperar");
   }
 
   function terminarDescartar() {
-    setEstado("esperar")
-    socket.emit("descartado")
+    setEstado("esperar");
+    socket.emit("descartado", {});
+  }
+
+  function alternarAdivinar() {
+    setEstado(estado === "adivinar" ? "preguntar" : "adivinar");
   }
 
   return (
-    <div id="juego">
-      <div id="arrba">
-        <h2 id="cantPreguntas">cantidad de preguntas {cantPreguntas}</h2>
+    <div className={styles.juego}>
+      {/* ENCABEZADO */}
+      <div className={styles.arriba}>
+        <h2 className={styles.contador}>
+          cantidad de preguntas {cantPreguntas}
+        </h2>
         <h1>Adivinalichi</h1>
 
-        {(estado === "preguntar" || estado==="adivinar") && 
-        <Boton id="adivinar" 
-          onClick={() => {
-            if(estado==="adivinar"){
-              setEstado("preguntar");
-              return
-            }
-            setEstado("adivinar")
-          }}
-        >
-          Adivinar
-        </Boton>}
-
+        {(estado === "preguntar" || estado === "adivinar") && (
+          <Boton onClick={alternarAdivinar}>
+            {estado === "adivinar" ? "Cancelar" : "Adivinar"}
+          </Boton>
+        )}
       </div>
 
-      {/*EL TABLERO */}
+      {/* TABLERO */}
       <Tablero
         casillas={casillas}
         casillaElegida={casillaElegida}
         elegir={elegirCasilla}
-        adivinar={estado=="adivinar"}
-      ></Tablero>
+        adivinar={estado === "adivinar"}
+      />
 
-      <div id="derecha">
-        <div id="personaje">
-          <img alt="casilla elegida" src={casillaElegida.img}></img>
-          <p>{casillaElegida.nombre_casilla} </p>
+      {/* PANEL DERECHO */}
+      <div className={styles.derecha}>
+        <div className={styles.personaje}>
+          {casillaElegida ? (
+            <img alt="casilla elegida" src={casillaElegida.img} />
+          ) : (
+            <div className={styles.placeholder}>?</div>
+          )}
+          <p>{casillaElegida?.nombre_casilla ?? "Sin elegir"}</p>
         </div>
 
-        <div id="chat">
-          {chat.map((msg, i) => (
-            <p key={i}>
-              {msg.pregunta}
-              {msg.respuesta !== undefined &&
-                (msg.respuesta ? " - SÍ" : " - NO")}
-            </p>
-          ))}
+        <div className={styles.chat} ref={chatRef}>
+          {chat.map((msg, i) => {
+            const clases = [styles.mensaje];
+
+            if (msg.sistema) {
+              clases.push(styles.sistema, msg.gano ? styles.si : styles.no);
+            } else {
+              clases.push(msg.propia ? styles.propia : styles.ajena);
+              if (msg.respuesta === undefined) clases.push(styles.pendiente);
+              else clases.push(msg.respuesta ? styles.si : styles.no);
+            }
+
+            return (
+              <div key={i} className={clases.join(" ")}>
+                {msg.pregunta}
+                {msg.respuesta !== undefined && (
+                  <span className={styles.etiqueta}>
+                    {msg.respuesta ? "Sí" : "No"}
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-
+        {estado === "elegir" && (
+          <div className={styles.aviso}>
+            <h2>Elige una casilla antes de empezar</h2>
+          </div>
+        )}
 
         {estado === "preguntar" && (
-          <div id="pregunta">
+          <div className={styles.pregunta}>
             <input
               placeholder="Escriba su pregunta"
               value={pregunta}
               onChange={actpregunta}
-            ></input>
-            <Boton id="enviar" onClick={enviar}>
-              Enviar
-            </Boton>
+            />
+            <Boton onClick={enviar}>Enviar</Boton>
             {pregunta.length > 120 && <p>pregunta muy larga</p>}
           </div>
         )}
 
-        {estado === "elegir" && <h2>Elige una casilla antes de empezar</h2>}
-
         {estado === "responder" && (
-          <div id="respuesta">
+          <div className={styles.respuesta}>
             <h3>{paraResponder}</h3>
-            <div className="botones">
+            <div className={styles.botones}>
               <Boton onClick={() => responder(true)}>SÍ</Boton>
               <Boton onClick={() => responder(false)}>NO</Boton>
             </div>
           </div>
         )}
-        {estado === "esperar" && <h2>Esperando al otro jugador...</h2>}
-        {estado === "descartar" && (
-          <>
-            <h3>Descarta casillas</h3>
-            <Boton onClick={() => terminarDescartar()}>Listo</Boton>
 
-          </>
+        {estado === "esperar" && (
+          <div className={`${styles.aviso} ${styles.esperando}`}>
+            <h2>Esperando al otro jugador...</h2>
+          </div>
+        )}
+
+        {estado === "descartar" && (
+          <div className={styles.aviso}>
+            <h3>Descarta casillas</h3>
+            <Boton onClick={terminarDescartar}>Listo</Boton>
+          </div>
         )}
       </div>
     </div>
