@@ -80,6 +80,14 @@ app.post('/usuarios', async function (req, res) {
     }
 })
 
+app.post("/partida",async function (req,res) {
+    try {
+        await realizarQuery(`INSERT INTO Games (gano,cant_pregunta,fecha,id_usuario) VALUES (${req.body.gano},${req.body.cant_pregunta},${req.body.fecha},${req.body.id_usuario})`)
+    } catch (error) {
+        res.status(500).send({ error: error.message })
+    }
+})
+
 
 app.post('/login', async function (req, res) {
     try {

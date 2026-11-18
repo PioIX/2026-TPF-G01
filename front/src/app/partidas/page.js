@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import useSocket from "@/app/hooks/useSocket";
 import styles from "./page.module.css";
 
+
+
 export default function PartidasPage() {
 
     const { socket } = useSocket();
@@ -15,6 +17,12 @@ export default function PartidasPage() {
     const [miCodigo, setMiCodigo] = useState("");
     const [mensaje, setMensaje] = useState("");
     const [conectado, setConectado] = useState(false);
+
+    const [id, setId] = useState(null);
+
+    useEffect(() => {
+        setId(new URLSearchParams(window.location.search).get("id"));
+    }, []);
     useEffect(() => {
 
         if (!socket) return;
@@ -35,7 +43,7 @@ export default function PartidasPage() {
         const partidaLista = (data) => {
             setMensaje("¡Partida encontrada!");
 
-            router.push("/juego?room=" + data.room);
+            router.push("/juego?room=" + data.room+"&id="+id);
         };
 
         const errorSala = (mensaje) => {
@@ -93,13 +101,13 @@ export default function PartidasPage() {
             setMensaje("Ingresá un código");
             return;
         }
-        
+
 
         setMensaje("Buscando sala...");
         socket.emit("joinRoom", {
             room: codigo.trim().toUpperCase()
         });
-        
+
     };
 
 
