@@ -596,3 +596,221 @@
     width: 56px;
   }
 }
+
+/* ======================================================
+   MODAL FIN DE PARTIDA
+   ====================================================== */
+
+.modalFondo {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(3, 8, 20, 0.75);
+  backdrop-filter: blur(6px);
+  animation: fadeFondo 0.3s ease-out;
+  overflow: hidden;
+}
+
+.modal {
+  position: relative;
+  width: min(94vw, 460px);
+  max-height: 94dvh;
+  overflow-y: auto;
+  padding: 32px 28px 28px;
+  text-align: center;
+  color: #ffffff;
+  background: linear-gradient(180deg, var(--azul-carta) 0%, var(--azul-panel) 100%);
+  border: 3px solid var(--azul-borde);
+  border-radius: 20px;
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.3), 0 20px 50px rgba(0, 0, 0, 0.6);
+  animation: popModal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modalGanaste {
+  border-color: var(--dorado);
+  box-shadow: 0 0 0 4px rgba(255, 210, 63, 0.25),
+    0 0 50px rgba(255, 210, 63, 0.35), 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.modalPerdiste {
+  border-color: #ff5c68;
+  box-shadow: 0 0 0 4px rgba(255, 92, 104, 0.2),
+    0 0 40px rgba(255, 92, 104, 0.25), 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.modalEmoji {
+  font-size: 3.5rem;
+  line-height: 1;
+  animation: rebote 1.4s ease-in-out infinite;
+}
+
+.modal h2 {
+  margin: 8px 0 18px;
+  font-size: clamp(1.8rem, 6vw, 2.4rem);
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.modalGanaste h2 {
+  color: var(--dorado);
+  text-shadow: 0 3px 0 #b57400, 0 0 20px rgba(255, 210, 63, 0.5);
+}
+
+.modalPerdiste h2 {
+  color: #ff5c68;
+  text-shadow: 0 3px 0 #9c1f2a;
+}
+
+/* ---------- Las dos cartas (tuya vs del rival) ---------- */
+
+.modalPersonajes {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.modalPersonaje {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.modalPersonaje span {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.modalPersonaje img {
+  width: 100%;
+  max-width: 120px;
+  aspect-ratio: 1;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 14px;
+  border: 3px solid var(--azul-borde);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+}
+
+.modalPersonaje strong {
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.modalVs {
+  align-self: center;
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--dorado);
+  text-shadow: 0 2px 0 #b57400;
+}
+
+/* ---------- Contador de preguntas ---------- */
+
+.modalStats {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 22px;
+  padding: 8px 26px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--azul-borde);
+  border-radius: 12px;
+}
+
+.modalStats b {
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--celeste);
+}
+
+.modalStats small {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* ---------- Botón volver ---------- */
+
+.modal button {
+  width: 100%;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #3a2a00;
+  background: linear-gradient(180deg, #ffe066 0%, #f5a300 100%);
+  box-shadow: 0 5px 0 #b57400, 0 8px 12px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s, filter 0.15s;
+}
+
+.modal button:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.modal button:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #b57400, 0 3px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- Confeti (solo si ganás) ---------- */
+
+.confeti {
+  position: absolute;
+  top: -20px;
+  width: 10px;
+  height: 16px;
+  border-radius: 2px;
+  opacity: 0;
+  pointer-events: none;
+  animation: caer linear infinite;
+}
+
+@keyframes caer {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(110vh) rotate(720deg);
+  }
+}
+
+@keyframes fadeFondo {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popModal {
+  from {
+    opacity: 0;
+    transform: scale(0.6) translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rebote {
+  50% { transform: translateY(-8px) scale(1.08); }
+}

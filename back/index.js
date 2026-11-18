@@ -89,7 +89,8 @@ app.post('/login', async function (req, res) {
 
         if (usuario.length > 0) {
             res.send({
-                message: "Login exitoso"
+                message: "Login exitoso",
+                id:usuario[0].id_usuario
             });
 
         } else {
@@ -191,7 +192,10 @@ socket.on("casillaElegida", () => {
     // INICIAR JUEGO
     socket.on("inicioJuego", async ({categoria}) => {
         async function generarTablero(categoria) {
-            return await realizarQuery(`SELECT nombre_casilla, img FROM Personajes WHERE tabla="${categoria}" ORDER BY RAND() LIMIT 24`);
+            return await realizarQuery(`SELECT nombre_casilla, REPLACE(img, 'front/public', '') AS img
+ FROM Personajes
+ WHERE tabla="${categoria}"
+ ORDER BY RAND() LIMIT 24`);
         }
 
         const codigo = req.session.room;

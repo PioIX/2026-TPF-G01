@@ -5,6 +5,7 @@ import Boton from "@/components/Boton";
 import Tablero from "@/components/Tablero";
 import useSocket from "@/app/hooks/useSocket";
 import styles from "./page.module.css";
+import { useRouter } from "next/navigation";
 
 export default function JuegoPage() {
   const { socket } = useSocket();
@@ -16,6 +17,10 @@ export default function JuegoPage() {
   const [paraResponder, setParaResponder] = useState("");
   const [cantPreguntas, setCantPreguntas] = useState(0);
   const [casillaElegida, setCasillaElegida] = useState("");
+  const [resultado, setResultado] = useState(null)
+  const [casillaOtro,setCasillaOtro] = useState(null)
+  const router = useRouter();
+
 
   // ref para que los listeners del socket vean siempre la casilla actual
   const casillaRef = useRef("");
@@ -44,7 +49,7 @@ export default function JuegoPage() {
 
     const unirse = () => {
       socket.emit("joinRoom", { room });
-      socket.emit("inicioJuego", { categoria: "futbolistas" });
+      socket.emit("inicioJuego", { categoria: "peliculas" });
     };
 
     const onTablero = (data) => {
@@ -81,9 +86,11 @@ export default function JuegoPage() {
     // El otro jugador intentó adivinar mi personaje
     const onCasillaAdivinada = (data) => {
       const acerto =
-        data.casilla.nombre_casilla === casillaRef.current.nombre_casilla;
+        data.casillaElegida.nombre_casilla === casillaRef.current.nombre_casilla;
 
-      socket.emit("resultadoFinal", { result: acerto });
+      socket.emit("resultadoFinal", { result: acerto,casillaPropia:casillaRef.current });
+      setResultado(!acerto);
+      setCasillaOtro(data.casillaPropia)
 
       setChat((prev) => [
         ...prev,
@@ -108,7 +115,9 @@ export default function JuegoPage() {
             : "has perdido la partida",
         },
       ]);
+      setResultado(data.result);
       setEstado("fin");
+      setCasillaOtro(data.casillaPropia)
     };
 
     socket.on("connect", unirse); // vuelve a unirse si el socket se reconecta
@@ -136,7 +145,7 @@ export default function JuegoPage() {
 
   const elegirCasilla = (casilla) => {
     if (estado === "adivinar") {
-      socket.emit("casillaAdivinada", { casilla });
+      socket.emit("casillaAdivinada", { casillaElegida:casilla,casillaPropia:casillaRef.current });
     } else {
       setCasillaElegida(casilla);
       casillaRef.current = casilla;
@@ -280,6 +289,56 @@ export default function JuegoPage() {
           </div>
         )}
       </div>
+
+{estado === "fin" && (
+  <div className={styles.modalFondo}>
+    {resultado &&
+      Array.from({ length: 30 }).map((_, i) => (
+        <span
+          key={i}
+          className={styles.confeti}
+          style={{
+            left: `${(i * 37) % 100}%`,
+            background: ["#ffd23f", "#4be25d", "#1fa2ff", "#ff5c68"][i % 4],
+            animationDuration: `${2.5 + (i % 5) * 0.6}s`,
+            animationDelay: `${(i % 10) * 0.25}s`,
+          }}
+        />
+      ))}
+
+    <div
+      className={`${styles.modal} ${
+        resultado ? styles.modalGanaste : styles.modalPerdiste
+      }`}
+    >
+      <div className={styles.modalEmoji}>{resultado ? "🏆" : "😢"}</div>
+      <h2>{resultado ? "¡Ganaste!" : "Perdiste"}</h2>
+
+<div className={styles.modalPersonajes}>
+  <div className={styles.modalPersonaje}>
+    <span>Tu personaje</span>
+    <img src={casillaElegida?.img} alt={casillaElegida?.nombre_casilla} />
+    <strong>{casillaElegida?.nombre_casilla}</strong>
+  </div>
+
+  <div className={styles.modalVs}>VS</div>
+
+  <div className={styles.modalPersonaje}>
+    <span>Su personaje</span>
+    <img src={casillaOtro?.img} alt={casillaOtro?.nombre_casilla} />
+    <strong>{casillaOtro?.nombre_casilla}</strong>
+  </div>
+</div>
+
+      <div className={styles.modalStats}>
+        <b>{cantPreguntas}</b>
+        <small>preguntas realizadas</small>
+      </div>
+
+      <Boton onClick={() => router.push("/")}>Volver al menú</Boton>
+    </div>
+  </div>
+)}
     </div>
   );
 }
