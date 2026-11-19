@@ -206,7 +206,7 @@ export default function JuegoPage() {
   function terminarPartida() {
     const fecha = new Date();                                  // objeto Date
     const fechaSQL = fecha.toISOString().slice(0, 19).replace("T", " ");
-    let partida = { gano: resultado, cantPregunta: cantPreguntas, fecha: fechaSQL, id_usuario: id }
+    let partida = { gano: resultado, cant_pregunta: cantPreguntas, fecha: fechaSQL, id_usuario: id }
     fetch("http://localhost:4000/partida", {
       method: "POST",
       headers: {
@@ -363,7 +363,7 @@ export default function JuegoPage() {
               <small>preguntas realizadas</small>
             </div>
 
-            <Boton onClick={() => terminarPartida}>Volver al menú</Boton>
+            <Boton onClick={() => terminarPartida()}>Volver al menú</Boton>
           </div>
         </div>
       )}

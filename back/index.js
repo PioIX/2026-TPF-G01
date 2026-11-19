@@ -61,6 +61,18 @@ app.get('/usuarios', async function (req, res) {
     }
 })
 
+app.get('/games', async function (req, res) {
+    try {
+
+        let respuesta = await realizarQuery(`SELECT * FROM Games`);
+        res.send(respuesta);
+    }
+
+    catch (error) {
+        res.status(500).send({ error: error.message });
+    }
+})
+
 app.post('/usuarios', async function (req, res) {
     try {
 
@@ -82,7 +94,8 @@ app.post('/usuarios', async function (req, res) {
 
 app.post("/partida",async function (req,res) {
     try {
-        await realizarQuery(`INSERT INTO Games (gano,cant_pregunta,fecha,id_usuario) VALUES (${req.body.gano},${req.body.cant_pregunta},${req.body.fecha},${req.body.id_usuario})`)
+        await realizarQuery(`INSERT INTO Games (gano,cant_pregunta,fecha,id_usuario) VALUES (${req.body.gano},${req.body.cant_pregunta},"${req.body.fecha}",${req.body.id_usuario})`)
+        res.send({ message: "partida guardada" });
     } catch (error) {
         res.status(500).send({ error: error.message })
     }
@@ -119,7 +132,8 @@ io.on("connection", (socket) => {
     const req = socket.request;
 
     // CREAR SALA
-    socket.on("crearSala", () => {
+    socket.on("crearSala", (data) => {
+        const categoria = data?.categoria;
         let codigo = crypto.randomBytes(3).toString("hex").toUpperCase();
 
         while (io.sockets.adapter.rooms.has(codigo)) {
@@ -134,6 +148,7 @@ io.on("connection", (socket) => {
         socket.join(codigo);
 
         console.log("Sala creada:", codigo);
+        salas[codigo] = { tablero: null, elegidas: new Set(), categoria };
 
         socket.emit("salaCreada", { room: codigo });
     });
@@ -163,8 +178,7 @@ io.on("connection", (socket) => {
         req.session.room = codigo;
         socket.join(codigo);
 
-        // estado de la partida (se crea una sola vez por sala)
-        salas[codigo] ??= { tablero: null, elegidas: new Set() };
+
 
         // si el tablero ya existe (entré tarde o recargué), mandárselo solo a este socket
         if (salas[codigo].tablero) {
@@ -190,7 +204,12 @@ socket.on("casillaElegida", () => {
     console.log("sala:", codigo, "elegidas:", sala.elegidas.size);
 
     if (sala.elegidas.size === 2) {
-        const [primero, segundo] = [...sala.elegidas]; // ids de los dos sockets
+        const ids = [...sala.elegidas]; 
+
+        // sorteo: 50% de que se inviertan
+        if (Math.random() < 0.5) ids.reverse();
+
+        const [primero, segundo] = ids;
 
         io.to(primero).emit("empezar", { turno: true });   // pregunta
         io.to(segundo).emit("empezar", { turno: false });  // espera
@@ -198,21 +217,32 @@ socket.on("casillaElegida", () => {
 });
 
     // INICIAR JUEGO
-    socket.on("inicioJuego", async ({categoria}) => {
-        async function generarTablero(categoria) {
-            return await realizarQuery(`SELECT nombre_casilla, REPLACE(img, 'front/public', '') AS img
- FROM Personajes
- WHERE tabla="${categoria}"
- ORDER BY RAND() LIMIT 24`);
-        }
-
+socket.on("inicioJuego", async () => {
+    async function generarTablero(categoria) {
+    return await realizarQuery(
+                `SELECT nombre_casilla,
+                REPLACE(img, 'front/public', '') AS img
+         FROM Personajes
+         WHERE tabla="${categoria}"
+         ORDER BY RAND()
+         LIMIT 24`
+    );
+}
+    try {
         const codigo = req.session.room;
         const sala = salas[codigo];
-        if (!sala || sala.tablero) return; // candado: ya se generó
+        if (!sala || sala.tablero || sala.generando) return;
 
-        sala.tablero = await generarTablero(categoria);
+        sala.generando = true;
+        sala.tablero = await generarTablero(sala.categoria);
+        sala.generando = false;
+
         io.to(codigo).emit("tablero", { personajes: sala.tablero });
-    });
+    } catch (error) {
+        console.error("Error en inicioJuego:", error);
+        if (salas[req.session.room]) salas[req.session.room].generando = false;
+    }
+});
 
 
     socket.on("pregunta", (data) => {

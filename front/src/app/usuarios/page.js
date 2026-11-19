@@ -28,7 +28,9 @@ export default function UsuariosPage() {
       .then(res => res.json())
       .then(data => {
         setMensaje(data.message);
-        router.push("/partidas?id="+data.id);
+        if (data.message === "Login exitoso") {
+          router.push("/partidas?id="+data.id);
+        }
       })
       .catch(error => {
         console.log(error);

@@ -17,11 +17,16 @@ export default function PartidasPage() {
     const [miCodigo, setMiCodigo] = useState("");
     const [mensaje, setMensaje] = useState("");
     const [conectado, setConectado] = useState(false);
+    const [categoria, setCategoria] = useState("");
 
     const [id, setId] = useState(null);
 
     useEffect(() => {
         setId(new URLSearchParams(window.location.search).get("id"));
+        setMensaje("");
+        setMiCodigo("");
+        setConectado(false);
+        setCodigo("");
     }, []);
     useEffect(() => {
 
@@ -43,7 +48,7 @@ export default function PartidasPage() {
         const partidaLista = (data) => {
             setMensaje("¡Partida encontrada!");
 
-            router.push("/juego?room=" + data.room+"&id="+id);
+            router.push("/juego?room=" + data.room + "&id=" + id);
         };
 
         const errorSala = (mensaje) => {
@@ -83,8 +88,13 @@ export default function PartidasPage() {
             return;
         }
 
+        if (categoria === "") {
+            setMensaje("Elegí una categoría");
+            return;
+        }
+
         setMensaje("Creando sala...");
-        socket.emit("crearSala");
+        socket.emit("crearSala", {categoria: categoria});
 
     };
 
@@ -138,10 +148,24 @@ export default function PartidasPage() {
                             con otro jugador.
                         </p>
 
+                        <select
+                            className={styles.select}
+                            value={categoria}
+                            onChange={(e) => setCategoria(e.target.value)}
+                            disabled={!conectado || miCodigo !== ""}
+                        >
+                            <option value="" disabled>Elegí una categoría</option>
+                            <option value="futbolistas">Futbolistas</option>
+                            <option value="peliculas">Peliculas</option>
+                            <option value="actores">Actores</option>
+                            <option value="superheroes">Superheroes</option>
+                            <option value="profesores">Profesores</option>
+                        </select>
+
                         <button
                             className={styles.boton}
                             onClick={crearSala}
-                            disabled={!conectado || miCodigo !== ""}
+                            disabled={!conectado || miCodigo !== "" || categoria === ""}
                         >
                             Crear sala
                         </button>
