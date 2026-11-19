@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Boton from "@/components/Boton";
 import styles from "./page.module.css";
+import { useRouter } from "next/navigation";
 
 export default function UsuariosPage() {
 
@@ -11,6 +12,7 @@ export default function UsuariosPage() {
   const [contrasena, setContrasena] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [registro, setRegistro] = useState(false);
+  const router = useRouter();
 
   const Login = () => {
     fetch("http://localhost:4000/login", {
@@ -26,6 +28,9 @@ export default function UsuariosPage() {
       .then(res => res.json())
       .then(data => {
         setMensaje(data.message);
+        if (data.message === "Login exitoso") {
+          router.push("/partidas?id="+data.id);
+        }
       })
       .catch(error => {
         console.log(error);
@@ -85,7 +90,7 @@ export default function UsuariosPage() {
             className={styles.input}
           />
 
-          <button 
+          <button
             onClick={Registro}
             className={styles.submitButton}
           >
@@ -94,7 +99,7 @@ export default function UsuariosPage() {
 
           {mensaje && <p className={styles.message}>{mensaje}</p>}
 
-          <button 
+          <button
             onClick={() => setRegistro(false)}
             className={styles.toggleButton}
           >
@@ -121,7 +126,7 @@ export default function UsuariosPage() {
             className={styles.input}
           />
 
-          <button 
+          <button
             onClick={Login}
             className={styles.submitButton}
           >
@@ -130,7 +135,7 @@ export default function UsuariosPage() {
 
           {mensaje && <p className={styles.message}>{mensaje}</p>}
 
-          <button 
+          <button
             onClick={() => setRegistro(true)}
             className={styles.toggleButton}
           >
