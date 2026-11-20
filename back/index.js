@@ -217,6 +217,9 @@ io.on("connection", (socket) => {
 
 
 
+        // limpio los IDs de sockets que ya se fueron, si no la sala queda trabeada
+        limpiarSala(codigo);
+
         // si el tablero ya existe (entré tarde o recargué), mandárselo solo a este socket
         if (salas[codigo].tablero) {
             socket.emit("tablero", { personajes: salas[codigo].tablero });
@@ -250,8 +253,17 @@ io.on("connection", (socket) => {
 
             io.to(primero).emit("empezar", { turno: true });   // pregunta
             io.to(segundo).emit("empezar", { turno: false });  // espera
+
+            // dejo la sala lista para una revancha
+            sala.elegidas.clear();
+
+            if (salas[codigo]) {
+            salas[codigo].empezada = true;
+    }
+
         }
     });
+
 
     // INICIAR JUEGO
     socket.on("inicioJuego", async () => {
@@ -303,14 +315,22 @@ io.on("connection", (socket) => {
     })
 
     socket.on("terminarPartida", () => {
-    const codigo = req.session.room;
-    const sala = salas[codigo];
-    if (sala) {
-        sala.tablero = null;
-        sala.elegidas.clear();
-        sala.generando = false;
-    }
-});
+        reiniciarSala(req.session.room);
+    });
+
+    // el que espera/el que recarga tambien puede reiniciar la sala
+    socket.on("reiniciarPartida", () => {
+        reiniciarSala(req.session.room);
+    });
+
+    socket.on("disconnecting", () => {
+        const codigo = req.session.room;
+        if (codigo) {
+            // el socket todavia esta en la room aca, asi que el chequeo de "quedo alguien"
+            // se hace en cuanto termine de salir
+            setImmediate(() => limpiarSala(codigo));
+        }
+    });
 
 
 });
