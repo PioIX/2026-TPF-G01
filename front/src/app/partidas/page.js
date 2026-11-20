@@ -5,6 +5,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import useSocket from "@/app/hooks/useSocket";
 import styles from "./page.module.css";
+import { API_URL } from "@/app/config";
+
+const URL = API_URL;
 
 
 

@@ -6,6 +6,9 @@ import Tablero from "@/components/Tablero";
 import useSocket from "@/app/hooks/useSocket";
 import styles from "./page.module.css";
 import { useRouter } from "next/navigation";
+import { API_URL } from "@/app/config";
+
+
 
 export default function JuegoPage() {
   const { socket } = useSocket();
@@ -203,19 +206,31 @@ export default function JuegoPage() {
     setEstado(estado === "adivinar" ? "preguntar" : "adivinar");
   }
 
-  function terminarPartida() {
-    const fecha = new Date();                                  // objeto Date
-    const fechaSQL = fecha.toISOString().slice(0, 19).replace("T", " ");
-    let partida = { gano: resultado, cant_pregunta: cantPreguntas, fecha: fechaSQL, id_usuario: id }
-    fetch("http://localhost:4000/partida", {
+async function terminarPartida() {
+  const fechaSQL = new Date().toISOString().slice(0, 19).replace("T", " ");
+
+  const partida = {
+    gano: resultado,
+    cant_pregunta: cantPreguntas,
+    fecha: fechaSQL,
+    id_usuario: id,
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/partida`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(partida)
-    }).then(console.log("se guardo la partida"))
-    router.push("/partidas?id="+id);
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(partida),
+    });
+
+    if (!res.ok) throw new Error("Error " + res.status);
+    console.log("se guardo la partida");
+  } catch (error) {
+    console.error("No se pudo guardar la partida:", error);
   }
+  socket.emit("terminarPartida");
+  router.push("/partidas?id=" + id);
+}
 
   return (
     <div className={styles.juego}>
