@@ -4,6 +4,7 @@ import { useState } from "react";
 import Boton from "@/components/Boton";
 import styles from "./page.module.css";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function UsuariosPage() {
 
@@ -29,7 +30,10 @@ export default function UsuariosPage() {
       .then(data => {
         setMensaje(data.message);
         if (data.message === "Login exitoso") {
-          router.push("/partidas?id="+data.id);
+          localStorage.setItem("id", data.id);
+          localStorage.setItem("es_admin", data.es_admin);
+
+          router.push("/?id=" + data.id);
         }
       })
       .catch(error => {
@@ -143,6 +147,10 @@ export default function UsuariosPage() {
           </button>
         </div>
       )}
+      <Link href="/" className={styles.volver}>
+        ← Volver al menú
+      </Link>
     </div>
+
   );
 }

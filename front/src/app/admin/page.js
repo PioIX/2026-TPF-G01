@@ -11,6 +11,7 @@ export default function Admin() {
   const [idEditar, setIdEditar] = useState("");
   const [idEliminar, setIdEliminar] = useState("");
   const [form, setForm] = useState(vacio);
+  const [idUsuarioEliminar, setIdUsuarioEliminar] = useState("");
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -25,6 +26,30 @@ export default function Admin() {
     });
     alert("Personaje eliminado");
     setIdEliminar("");
+  }
+
+  async function handleEliminarUsuario() {
+    if (!idUsuarioEliminar) {
+      alert("Ingresá un ID de usuario");
+      return;
+    }
+
+    await fetch(`${URL}/usuarios`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id_usuario: Number(idUsuarioEliminar)
+      }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        setIdUsuarioEliminar("");
+      })
+      .catch(error => {
+        console.log(error);
+        alert("Error al eliminar el usuario");
+      });
   }
 
   async function handleGuardar() {
@@ -52,29 +77,59 @@ export default function Admin() {
   return (
     <div className={styles.page}>
       <main className={styles.main}>
-        <h1>Panel de administración</h1>
-        <p className={styles.descripcion}>Creá, editá o eliminá personajes del juego</p>
-
         <div className={styles.contenedor}>
+          <div className={styles.columnaEliminar}>
 
-          <div className={styles.tarjeta}>
-            <span className={styles.icono}>✕</span>
-            <h2>Eliminar personaje</h2>
-            <input
-              className={styles.input}
-              type="number"
-              placeholder="ID de la casilla"
-              min="1"
-              value={idEliminar}
-              onChange={(e) => setIdEliminar(e.target.value)}
-            />
-            <button className={`${styles.boton} ${styles.botonEliminar}`} onClick={handleEliminar}>
-              Eliminar
-            </button>
+            <div className={styles.tarjeta}>
+              <span className={styles.icono}>✕</span>
+              <h2>Eliminar personaje</h2>
+
+              <input
+                className={styles.input}
+                type="number"
+                placeholder="ID de la casilla"
+                min="1"
+                value={idEliminar}
+                onChange={(e) => setIdEliminar(e.target.value)}
+              />
+
+              <button
+                className={`${styles.boton} ${styles.botonEliminar}`}
+                onClick={handleEliminar}
+              >
+                Eliminar
+              </button>
+            </div>
+
+            <div className={styles.tarjeta}>
+              <span className={styles.icono}>👤</span>
+              <h2>Eliminar usuario</h2>
+
+              <input
+                className={styles.input}
+                type="number"
+                placeholder="ID del usuario"
+                min="1"
+                value={idUsuarioEliminar}
+                onChange={(e) => setIdUsuarioEliminar(e.target.value)}
+              />
+
+              <button
+                className={`${styles.boton} ${styles.botonEliminar}`}
+                onClick={handleEliminarUsuario}
+              >
+                Eliminar usuario
+              </button>
+            </div>
+
           </div>
 
+          {/* Columna derecha */}
           <div className={styles.tarjeta}>
-            <span className={styles.icono}>{modo == "crear" ? "⚡" : "✏️"}</span>
+            <span className={styles.icono}>
+              {modo == "crear" ? "⚡" : "✏️"}
+            </span>
+
             <h2>{modo == "crear" ? "Crear personaje" : "Editar personaje"}</h2>
 
             <div className={styles.toggle}>
@@ -84,6 +139,7 @@ export default function Admin() {
               >
                 Crear
               </button>
+
               <button
                 className={`${styles.toggleBtn} ${modo == "editar" ? styles.activo : ""}`}
                 onClick={() => setModo("editar")}
@@ -103,13 +159,37 @@ export default function Admin() {
               />
             )}
 
-            <input className={styles.input} type="text" name="nombre_casilla" placeholder="Nombre" value={form.nombre_casilla} onChange={handleChange} />
-            <input className={styles.input} type="text" name="img" placeholder="URL de imagen" value={form.img} onChange={handleChange} />
-            <input className={styles.input} type="text" name="tabla" placeholder="Tabla" value={form.tabla} onChange={handleChange} />
+            <input
+              className={styles.input}
+              type="text"
+              name="nombre_casilla"
+              placeholder="Nombre"
+              value={form.nombre_casilla}
+              onChange={handleChange}
+            />
 
-            <button className={styles.boton} onClick={handleGuardar}>Confirmar</button>
+            <input
+              className={styles.input}
+              type="text"
+              name="img"
+              placeholder="URL de imagen"
+              value={form.img}
+              onChange={handleChange}
+            />
+
+            <input
+              className={styles.input}
+              type="text"
+              name="tabla"
+              placeholder="Tabla"
+              value={form.tabla}
+              onChange={handleChange}
+            />
+
+            <button className={styles.boton} onClick={handleGuardar}>
+              Confirmar
+            </button>
           </div>
-
         </div>
 
         <Link href="/" className={styles.volver}>← Volver al menú</Link>
