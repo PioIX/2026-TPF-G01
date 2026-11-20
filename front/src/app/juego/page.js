@@ -34,6 +34,7 @@ export default function JuegoPage() {
 
   useEffect(() => {
     setId(new URLSearchParams(window.location.search).get("id"));
+    console.log("hola")
   }, []);
 
   // crear un delay de 2 segundos para mostrar el modal
@@ -66,6 +67,7 @@ export default function JuegoPage() {
     setSala(room);
 
     const unirse = () => {
+      console.log("aaa")
       socket.emit("joinRoom", { room });
       socket.emit("inicioJuego", { categoria: "futbolistas" });
     };

@@ -303,7 +303,7 @@ io.on("connection", (socket) => {
     })
 
     socket.on("terminarPartida", () => {
-    const codigo = socket.data.room;
+    const codigo = req.session.room;
     const sala = salas[codigo];
     if (sala) {
         sala.tablero = null;
