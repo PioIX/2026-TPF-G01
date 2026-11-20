@@ -6,14 +6,7 @@
   position: relative;
 }
 
-/* Header transparente para ver el fondo detrás */
-.headerWrapper {
-  position: relative;
-  z-index: 10;
-  background-color: transparent; /* Transparente para ver el fondo */
-}
-
-/* Div específico con el fondo - ocupa el espacio entre header y footer */
+/* Contenedor con el fondo */
 .backgroundContainer {
   flex: 1;
   background-image: url('/fondo2.png');
@@ -25,16 +18,9 @@
   align-items: center;
   justify-content: flex-end;
   padding: 2rem;
-  padding-bottom: 4rem;
+  padding-bottom: 8rem;
   position: relative;
   z-index: 1;
-}
-
-/* Footer transparente para ver el fondo detrás */
-.footerWrapper {
-  position: relative;
-  z-index: 10;
-  background-color: transparent; /* Transparente para ver el fondo */
 }
 
 /* Contenedor de botones */
@@ -124,7 +110,7 @@
     padding: 1rem 1.5rem;
     font-size: 1rem;
   }
-  
+
   .buttonsContainer {
     max-width: 90%;
   }
@@ -135,7 +121,7 @@
     font-size: 0.9rem;
     padding: 0.8rem 1.2rem;
   }
-  
+
   .backgroundContainer {
     padding-bottom: 2rem;
   }

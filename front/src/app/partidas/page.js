@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import useSocket from "@/app/hooks/useSocket";
 import styles from "./page.module.css";
+import Link from "next/link";
 import { API_URL } from "@/app/config";
 
 const URL = API_URL;
@@ -97,7 +98,7 @@ export default function PartidasPage() {
         }
 
         setMensaje("Creando sala...");
-        socket.emit("crearSala", {categoria: categoria});
+        socket.emit("crearSala", { categoria: categoria });
 
     };
 
@@ -229,6 +230,10 @@ export default function PartidasPage() {
                 <p className={styles.mensaje}>
                     {mensaje}
                 </p>
+
+                <Link href="/" className={styles.volver}>
+                    ← Volver al menú
+                </Link>
 
             </div>
 

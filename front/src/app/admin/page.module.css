@@ -1,72 +1,99 @@
-.page {
-  --background: #fafafa;
-  --foreground: #fff;
-  --text-primary: #000;
-  --text-secondary: #666;
-  --border: #ebebeb;
 
+/* Página principal */
+.page {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  background-color: var(--background);
-  font-family: var(--font-geist-sans);
+  background-image: url('/fondo3.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Contenedor principal */
 .main {
   width: 100%;
-  max-width: 750px;
+  max-width: 900px;
   text-align: center;
 }
 
 .main h1 {
   font-size: 42px;
-  font-weight: 700;
-  letter-spacing: -2px;
-  color: var(--text-primary);
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: white;
   margin-bottom: 10px;
+  text-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
 }
 
+/* Descripción */
 .descripcion {
-  color: var(--text-secondary);
-  font-size: 16px;
+  color: #e0efff;
+  font-size: 17px;
   margin-bottom: 40px;
 }
 
+/* Contenedor de las dos columnas */
 .contenedor {
-  display: flex;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
   width: 100%;
   justify-content: center;
-  align-items: flex-start;
+  align-items: stretch;
+  margin-top: 50px;
 }
 
+/* Columna izquierda */
+.columnaEliminar {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-width: 0;
+}
+
+/* Tarjetas */
 .tarjeta {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
   flex: 1;
-  background-color: var(--foreground);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 35px 25px;
+  background: linear-gradient(145deg, rgba(13, 65, 125, 0.95), rgba(5, 43, 91, 0.96));
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 22px;
+  padding: 25px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
-  transition: 0.2s;
+  justify-content: center;
+  gap: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  transition: 0.3s;
 }
 
 .tarjeta h2 {
-  font-size: 23px;
-  color: var(--text-primary);
-  font-weight: 600;
+  font-size: 21px;
+  color: white;
+  font-weight: 700;
 }
 
+/* Tarjetas de eliminar */
+.columnaEliminar .tarjeta {
+  padding: 15px 20px;
+  gap: 10px;
+}
+
+/* Iconos */
 .icono {
   font-size: 38px;
   margin-bottom: 5px;
 }
 
+/* Selector Crear / Editar */
 .toggle {
   display: flex;
   width: 100%;
@@ -77,100 +104,137 @@
 .toggleBtn {
   flex: 1;
   height: 44px;
-  border: 1px solid var(--border);
+  border: 2px solid rgba(255, 255, 255, 0.4);
   border-radius: 128px;
-  background-color: #fafafa;
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 500;
+  background-color: rgba(255, 255, 255, 0.12);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition: 0.2s;
 }
 
 .toggleBtn:hover {
-  border-color: #ccc;
+  background-color: rgba(255, 255, 255, 0.25);
 }
 
+/* Opción seleccionada */
 .activo {
-  background-color: #000;
-  border-color: #000;
-  color: #fff;
+  background: linear-gradient(135deg, #f5c842, #e6b832);
+  border-color: #ffe17a;
+  color: #26344a;
 }
 
+/* Inputs */
 .input {
   width: 100%;
   max-width: 230px;
-  height: 44px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  height: 46px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
   padding: 0 15px;
   font-size: 15px;
   text-align: center;
   outline: none;
-  color: #000;
-  background-color: #fafafa;
-}
-
-.input:focus {
-  border-color: #888;
-}
-
-.boton {
-  width: 100%;
-  max-width: 230px;
-  height: 44px;
-  border: none;
-  border-radius: 128px;
-  background-color: #000;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
+  color: #17365d;
+  background-color: #f5f9ff;
   transition: 0.2s;
 }
 
-.boton:hover {
-  background-color: #383838;
+.input:focus {
+  border-color: #f5c842;
+  box-shadow: 0 0 8px rgba(245, 200, 66, 0.4);
 }
 
+.input::placeholder {
+  color: #718096;
+}
+
+/* Botones */
+.boton {
+  width: 100%;
+  max-width: 230px;
+  height: 46px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 128px;
+  background: linear-gradient(135deg, #4a90e2, #357abd);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.25);
+}
+
+.boton:hover {
+  background: linear-gradient(135deg, #5ba0f2, #4589cd);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Botón eliminar */
 .botonEliminar {
-  background-color: #c62828;
+  background: linear-gradient(135deg, #e75b5b, #c62828);
 }
 
 .botonEliminar:hover {
-  background-color: #a31f1f;
+  background: linear-gradient(135deg, #f16c6c, #d32f2f);
 }
 
+/* Volver al menú */
+
+/* Botón volver al menú */
 .volver {
-  display: inline-block;
-  margin-top: 25px;
-  color: var(--text-secondary);
-  font-size: 14px;
-  text-decoration: none;
+    display: inline-block;
+    margin-top: 25px;
+    padding: 12px 28px;
+    border-radius: 30px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    background: linear-gradient(135deg, #4a90e2, #357abd);
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    text-decoration: none;
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
 }
 
 .volver:hover {
-  color: var(--text-primary);
+    transform: translateY(-3px);
+    background: linear-gradient(135deg, #5ba0f2, #4589cd);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
 }
 
+
+/* Efecto al pasar el mouse */
 @media (hover: hover) and (pointer: fine) {
   .tarjeta:hover {
-    border-color: #ccc;
-    transform: translateY(-3px);
+    border-color: rgba(255, 255, 255, 0.7);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4);
   }
 }
 
+/* Responsive */
 @media (max-width: 600px) {
   .main h1 {
     font-size: 32px;
   }
 
   .contenedor {
+    grid-template-columns: 1fr;
+    margin-top: 30px;
+  }
+
+  .columnaEliminar {
     flex-direction: column;
-    align-items: stretch;
   }
 
   .tarjeta {
     padding: 30px 20px;
+  }
+
+  .descripcion {
+    font-size: 15px;
   }
 }

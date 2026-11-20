@@ -98,7 +98,36 @@ app.post('/usuarios', async function (req, res) {
     }
 })
 
-app.post("/partida",async function (req,res) {
+app.delete('/usuarios', async function (req, res) {
+    try {
+        let id_usuario = req.body.id_usuario;
+
+        if (!id_usuario) {
+            res.send({ message: "Ingresá un ID de usuario" });
+            return;
+        }
+
+        let usuario = await realizarQuery(
+            `SELECT * FROM Usuarios WHERE id_usuario=${id_usuario}`
+        );
+
+        if (usuario.length == 0) {
+            res.send({ message: "El usuario no existe" });
+            return;
+        }
+
+        await realizarQuery(
+            `DELETE FROM Usuarios WHERE id_usuario=${id_usuario}`
+        );
+
+        res.send({ message: "Usuario eliminado correctamente" });
+
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
+});
+
+app.post("/partida", async function (req, res) {
     try {
         await realizarQuery(`INSERT INTO Games (gano,cant_pregunta,fecha,id_usuario) VALUES (${req.body.gano},${req.body.cant_pregunta},"${req.body.fecha}",${req.body.id_usuario})`)
         res.send({ message: "partida guardada" });
@@ -117,7 +146,8 @@ app.post('/login', async function (req, res) {
         if (usuario.length > 0) {
             res.send({
                 message: "Login exitoso",
-                id:usuario[0].id_usuario
+                id: usuario[0].id_usuario,
+                es_admin: usuario[0].es_admin
             });
 
         } else {
@@ -161,7 +191,7 @@ io.on("connection", (socket) => {
 
 
     // UNIRSE A UNA SALA
- socket.on("joinRoom", (data) => {
+    socket.on("joinRoom", (data) => {
         const codigo = data.room.toUpperCase();
         const sala = io.sockets.adapter.rooms.get(codigo);
 
@@ -201,54 +231,54 @@ io.on("connection", (socket) => {
         }
     });
 
-socket.on("casillaElegida", () => {
-    const codigo = req.session.room;
-    const sala = salas[codigo];
-    if (!sala) return;
+    socket.on("casillaElegida", () => {
+        const codigo = req.session.room;
+        const sala = salas[codigo];
+        if (!sala) return;
 
-    sala.elegidas.add(socket.id);
-    console.log("sala:", codigo, "elegidas:", sala.elegidas.size);
+        sala.elegidas.add(socket.id);
+        console.log("sala:", codigo, "elegidas:", sala.elegidas.size);
 
-    if (sala.elegidas.size === 2) {
-        const ids = [...sala.elegidas]; 
+        if (sala.elegidas.size === 2) {
+            const ids = [...sala.elegidas];
 
-        // sorteo: 50% de que se inviertan
-        if (Math.random() < 0.5) ids.reverse();
+            // sorteo: 50% de que se inviertan
+            if (Math.random() < 0.5) ids.reverse();
 
-        const [primero, segundo] = ids;
+            const [primero, segundo] = ids;
 
-        io.to(primero).emit("empezar", { turno: true });   // pregunta
-        io.to(segundo).emit("empezar", { turno: false });  // espera
-    }
-});
+            io.to(primero).emit("empezar", { turno: true });   // pregunta
+            io.to(segundo).emit("empezar", { turno: false });  // espera
+        }
+    });
 
     // INICIAR JUEGO
-socket.on("inicioJuego", async () => {
-    async function generarTablero(categoria) {
-    return await realizarQuery(
+    socket.on("inicioJuego", async () => {
+        async function generarTablero(categoria) {
+            return await realizarQuery(
                 `SELECT nombre_casilla,
                 REPLACE(img, 'front/public', '') AS img
          FROM Personajes
          WHERE tabla="${categoria}"
          ORDER BY RAND()
          LIMIT 24`
-    );
-}
-    try {
-        const codigo = req.session.room;
-        const sala = salas[codigo];
-        if (!sala || sala.tablero || sala.generando) return;
+            );
+        }
+        try {
+            const codigo = req.session.room;
+            const sala = salas[codigo];
+            if (!sala || sala.tablero || sala.generando) return;
 
-        sala.generando = true;
-        sala.tablero = await generarTablero(sala.categoria);
-        sala.generando = false;
+            sala.generando = true;
+            sala.tablero = await generarTablero(sala.categoria);
+            sala.generando = false;
 
-        io.to(codigo).emit("tablero", { personajes: sala.tablero });
-    } catch (error) {
-        console.error("Error en inicioJuego:", error);
-        if (salas[req.session.room]) salas[req.session.room].generando = false;
-    }
-});
+            io.to(codigo).emit("tablero", { personajes: sala.tablero });
+        } catch (error) {
+            console.error("Error en inicioJuego:", error);
+            if (salas[req.session.room]) salas[req.session.room].generando = false;
+        }
+    });
 
 
     socket.on("pregunta", (data) => {
@@ -263,11 +293,11 @@ socket.on("inicioJuego", async () => {
         socket.to(req.session.room).emit("descartado", data);
     })
 
-    socket.on("casillaAdivinada",(data)=>{
+    socket.on("casillaAdivinada", (data) => {
         socket.to(req.session.room).emit("casillaAdivinada", data);
     })
 
-    socket.on("resultadoFinal",(data)=>{
+    socket.on("resultadoFinal", (data) => {
         socket.to(req.session.room).emit("resultadoFinal", data);
     })
 
@@ -284,3 +314,46 @@ socket.on("inicioJuego", async () => {
 
 });
 
+//Historial
+
+
+app.get("/historial", async function (req, res) {
+    try {
+
+        let id_usuario = req.query.id;
+
+        let usuario = await realizarQuery(`SELECT * FROM Usuarios WHERE id_usuario=${id_usuario}`);
+
+        if (usuario.length > 0) {
+
+            let respuesta;
+
+            if (usuario[0].es_admin == 1) {
+
+                respuesta = await realizarQuery(`
+                    SELECT * FROM Games
+                    INNER JOIN Usuarios ON Games.id_usuario = Usuarios.id_usuario
+                    ORDER BY Games.fecha DESC
+                `);
+
+            } else {
+
+                respuesta = await realizarQuery(`
+                    SELECT * FROM Games
+                    INNER JOIN Usuarios ON Games.id_usuario = Usuarios.id_usuario
+                    WHERE Games.id_usuario = ${id_usuario}
+                    ORDER BY Games.fecha DESC
+                `);
+
+            }
+
+            res.send(respuesta);
+
+        } else {
+            res.send({ error: "Usuario no encontrado" });
+        }
+
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
+});
