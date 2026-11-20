@@ -1,8 +1,9 @@
 
 import { useState, useEffect } from 'react';
 import io from 'socket.io-client';
+import { API_URL } from '@/app/config';
 
-const useSocket = (options = { withCredentials: true }, serverUrl = "http://localhost:4000") => {
+const useSocket = (options = { withCredentials: true }, serverUrl = API_URL) => {
 
     const [socket, setSocket] = useState(null);
     const [isConnected, setIsConnected] = useState(false);

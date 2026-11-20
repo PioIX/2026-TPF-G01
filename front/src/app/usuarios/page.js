@@ -5,6 +5,7 @@ import Boton from "@/components/Boton";
 import styles from "./page.module.css";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { API_URL } from "@/app/config";
 
 export default function UsuariosPage() {
 
@@ -16,7 +17,7 @@ export default function UsuariosPage() {
   const router = useRouter();
 
   const Login = () => {
-    fetch("http://localhost:4000/login", {
+    fetch(`${API_URL}/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -43,7 +44,7 @@ export default function UsuariosPage() {
   };
 
   const Registro = () => {
-    fetch("http://localhost:4000/usuarios", {
+    fetch(`${API_URL}/usuarios`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

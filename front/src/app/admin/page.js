@@ -2,8 +2,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import styles from "./page.module.css";
+import { API_URL } from "@/app/config";
 
-const URL = "http://localhost:4000";
+
+const URL = API_URL;
 const vacio = { nombre_casilla: "", img: "", tabla: "" };
 
 export default function Admin() {
