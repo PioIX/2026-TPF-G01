@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
+import { API_URL } from "@/app/config";
 
 export default function HistorialPage() {
 
@@ -18,7 +19,7 @@ export default function HistorialPage() {
             return;
         }
 
-        fetch("http://localhost:4000/historial?id=" + id)
+        fetch(`${API_URL}/partida/historial?id=` + id)
             .then(res => res.json())
             .then(data => {
                 setPartidas(data);
