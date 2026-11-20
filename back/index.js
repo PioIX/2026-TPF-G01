@@ -12,9 +12,15 @@ const salas = {}
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+const ORIGENES = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    /^http:\/\/192\.168\.\d+\.\d+:(3000|3001)$/,
+];
+
 app.use(cors({
-    origin: ["http://localhost:3000", "http://localhost:3001"],
-    credentials: true
+    origin: ORIGENES,
+    credentials: true,
 }));
 
 const server = app.listen(PORT, () => {
@@ -23,7 +29,7 @@ const server = app.listen(PORT, () => {
 
 const io = new Server(server, {
     cors: {
-        origin: ["http://localhost:3000", "http://localhost:3001"],
+        origin: ORIGENES,
         methods: ["GET", "POST", "PUT", "DELETE"],
         credentials: true,
     },
