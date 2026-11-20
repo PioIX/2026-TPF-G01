@@ -271,6 +271,16 @@ socket.on("inicioJuego", async () => {
         socket.to(req.session.room).emit("resultadoFinal", data);
     })
 
+    socket.on("terminarPartida", () => {
+    const codigo = socket.data.room;
+    const sala = salas[codigo];
+    if (sala) {
+        sala.tablero = null;
+        sala.elegidas.clear();
+        sala.generando = false;
+    }
+});
+
 
 });
 

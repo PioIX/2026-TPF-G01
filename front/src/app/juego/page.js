@@ -211,7 +211,7 @@ async function terminarPartida() {
 
   const partida = {
     gano: resultado,
-    cantPregunta: cantPreguntas,
+    cant_pregunta: cantPreguntas,
     fecha: fechaSQL,
     id_usuario: id,
   };
@@ -228,7 +228,7 @@ async function terminarPartida() {
   } catch (error) {
     console.error("No se pudo guardar la partida:", error);
   }
-
+  socket.emit("terminarPartida");
   router.push("/partidas?id=" + id);
 }
 
