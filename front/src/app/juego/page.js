@@ -229,7 +229,7 @@ async function terminarPartida() {
     console.error("No se pudo guardar la partida:", error);
   }
   socket.emit("terminarPartida");
-  router.push("/partidas?id=" + id);
+  router.push("/?id=" + id);
 }
 
   return (
